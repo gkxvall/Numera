@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --numera-blue: #2f80ff;
+  --numera-blue-dark: #1456c4;
+  --numera-yellow: #ffd447;
+  --numera-red: #ff4d5f;
+  --numera-purple: #8854ff;
+  --numera-green: #39d98a;
+  --numera-navy: #16213e;
+  --numera-cream: #fff9ec;
+  --numera-outline: #111827;
+
+  --background: var(--numera-cream);
+  --foreground: var(--numera-outline);
+}
+
+@theme inline {
+  --color-numera-blue: var(--numera-blue);
+  --color-numera-blue-dark: var(--numera-blue-dark);
+  --color-numera-yellow: var(--numera-yellow);
+  --color-numera-red: var(--numera-red);
+  --color-numera-purple: var(--numera-purple);
+  --color-numera-green: var(--numera-green);
+  --color-numera-navy: var(--numera-navy);
+  --color-numera-cream: var(--numera-cream);
+  --color-numera-outline: var(--numera-outline);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--numera-navy);
+    --foreground: var(--numera-cream);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

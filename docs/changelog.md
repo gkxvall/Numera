@@ -6,6 +6,7 @@ All notable changes to this project are documented here. Format loosely follows
 ## [Unreleased]
 
 ### Added
+
 - `docs/tasks.md` — full stage-by-stage task tracker derived from `docs/plan.md`.
 - `docs/known-issues.md` — open issues and risk watch list.
 - `docs/decisions.md` — architecture decision log (ADR-0001, ADR-0002).

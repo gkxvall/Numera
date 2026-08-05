@@ -1,7 +1,7 @@
 # Numera — Task Tracker
 
 Source of truth for stage status. Derived from `docs/plan.md` §31. Updated after every
-completed unit of work. A task is only marked **Done** when implemented *and* verified
+completed unit of work. A task is only marked **Done** when implemented _and_ verified
 (lint + type-check + relevant tests + build passing, where applicable).
 
 Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
@@ -11,25 +11,27 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 ## ➤ CURRENT STAGE: Stage 1 — Repository and foundation
 
 ## Stage 1 — Repository and foundation
+
 Status: 🔄 In progress
 
-| Task | Status | Notes |
-|---|---|---|
-| Create Next.js TypeScript project | ⬜ | App Router, `src/` layout |
-| Configure strict TypeScript | ⬜ | `strict: true`, no implicit any |
-| Configure Tailwind CSS | ⬜ | Numera palette tokens from plan §13.4 |
-| Configure ESLint and Prettier | ⬜ | flat config, Next + TS rules |
-| Configure testing (Vitest, RTL, Playwright) | ⬜ | unit/integration/e2e separated |
-| Establish directory structure | ⬜ | per plan §19 (`game-engine/`, `features/`, etc.) |
-| Add environment example file | ⬜ | `.env.example` |
-| Add initial README | ⬜ | run/build/test instructions |
-| Add contribution rules | ⬜ | `CONTRIBUTING.md` |
-| Add coding standards | ⬜ | `docs/architecture.md` or dedicated doc |
-| Add CI workflow | ⬜ | GitHub Actions: lint, typecheck, test, build |
+| Task                                        | Status | Notes                                            |
+| ------------------------------------------- | ------ | ------------------------------------------------ |
+| Create Next.js TypeScript project           | ⬜     | App Router, `src/` layout                        |
+| Configure strict TypeScript                 | ⬜     | `strict: true`, no implicit any                  |
+| Configure Tailwind CSS                      | ⬜     | Numera palette tokens from plan §13.4            |
+| Configure ESLint and Prettier               | ⬜     | flat config, Next + TS rules                     |
+| Configure testing (Vitest, RTL, Playwright) | ⬜     | unit/integration/e2e separated                   |
+| Establish directory structure               | ⬜     | per plan §19 (`game-engine/`, `features/`, etc.) |
+| Add environment example file                | ⬜     | `.env.example`                                   |
+| Add initial README                          | ⬜     | run/build/test instructions                      |
+| Add contribution rules                      | ⬜     | `CONTRIBUTING.md`                                |
+| Add coding standards                        | ⬜     | `docs/architecture.md` or dedicated doc          |
+| Add CI workflow                             | ⬜     | GitHub Actions: lint, typecheck, test, build     |
 
 **Dependencies:** none (first stage).
 
 **Acceptance criteria (from plan):**
+
 - Application runs (`npm run dev` serves a page)
 - Lint passes
 - Type checking passes
@@ -41,6 +43,7 @@ Status: 🔄 In progress
 ---
 
 ## Stage 2 — Design system
+
 Status: ⬜ Pending — depends on Stage 1
 
 Tasks: color tokens, typography scale, spacing tokens, shadows/borders, buttons, cards,
@@ -56,6 +59,7 @@ modals); visual check across breakpoints.
 ---
 
 ## Stage 3 — Game engine
+
 Status: ⬜ Pending — depends on Stage 1
 
 Tasks: game types, target generator, match initializer, turn rotation, move processor,
@@ -71,6 +75,7 @@ determinism.
 ---
 
 ## Stage 4 — Player and match setup
+
 Status: ⬜ Pending — depends on Stages 2, 3
 
 Tasks: player creation, avatar selector, color selector, player reordering, bot creation,
@@ -84,6 +89,7 @@ configurations cannot start.
 ---
 
 ## Stage 5 — Core gameplay UI
+
 Status: ⬜ Pending — depends on Stages 2, 3, 4
 
 Tasks: pass-the-phone screen, active player display, counter, move buttons, player order,
@@ -98,6 +104,7 @@ tests for duplicate submission and timer/animation overlap.
 ---
 
 ## Stage 6 — Elimination and victory experience
+
 Status: ⬜ Pending — depends on Stage 5
 
 Tasks: target-hit sequence, life-loss sequence, elimination animation, round summary,
@@ -112,6 +119,7 @@ match history.
 ---
 
 ## Stage 7 — Power-ups
+
 Status: ⬜ Pending — depends on Stages 3, 5
 
 Tasks: power-up models, inventory UI, initial power-ups (Shield, Peek, Reverse, Freeze,
@@ -127,6 +135,7 @@ order or match state.
 ---
 
 ## Stage 8 — Additional game modes
+
 Status: ⬜ Pending — depends on Stages 3, 5, 7
 
 Tasks: Multi-Life, Score Rush, Reverse Countdown, Sudden Death, Team Battle, Chaos Mode.
@@ -139,6 +148,7 @@ calculation.
 ---
 
 ## Stage 9 — Profile and progression
+
 Status: ⬜ Pending — depends on Stage 6
 
 Tasks: local profile, XP, levels, coins, trophies, leagues, profile screen, persist
@@ -152,6 +162,7 @@ not lose progress.
 ---
 
 ## Stage 10 — Challenges and achievements
+
 Status: ⬜ Pending — depends on Stage 9
 
 Tasks: daily challenge generation, weekly challenges, achievement definitions, progress
@@ -165,6 +176,7 @@ claimed twice.
 ---
 
 ## Stage 11 — Cosmetics
+
 Status: ⬜ Pending — depends on Stage 9
 
 Tasks: cosmetic data model, inventory, shop, unlock requirements, equip behavior, initial
@@ -181,6 +193,7 @@ engine outcomes.
 ---
 
 ## Stage 12 — Statistics and history
+
 Status: ⬜ Pending — depends on Stages 9, 6
 
 Tasks: match history, lifetime stats, player comparisons, statistics screen, data export,
@@ -194,6 +207,7 @@ least 50 matches.
 ---
 
 ## Stage 13 — Sound, music, and haptics
+
 Status: ⬜ Pending — depends on Stage 5
 
 Tasks: sound manager, sound effects, background music, volume controls, vibration,
@@ -207,6 +221,7 @@ disabled.
 ---
 
 ## Stage 14 — PWA and offline support
+
 Status: ⬜ Pending — depends on Stage 1 (structural), practically after Stage 12
 
 Tasks: manifest, icons, service worker, offline shell, cache required assets, update
@@ -220,6 +235,7 @@ initial load.
 ---
 
 ## Stage 15 — Accessibility and responsiveness
+
 Status: ⬜ Pending — depends on all UI stages (2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
 
 Tasks: keyboard navigation, screen-reader labels, announcements, focus management, high
@@ -234,6 +250,7 @@ pass.
 ---
 
 ## Stage 16 — Quality assurance
+
 Status: ⬜ Pending — depends on all prior stages
 
 Tasks: run all unit/integration/e2e tests, fix visual bugs, fix mobile overflow, fix race
@@ -246,6 +263,7 @@ passes; no known critical bugs.
 ---
 
 ## Stage 17 — Deployment and launch
+
 Status: ⬜ Pending — depends on Stage 16
 
 Tasks: configure Vercel, production environment, privacy-conscious analytics, error
@@ -258,6 +276,7 @@ console errors during standard play.
 ---
 
 ## Notes
+
 - Stages are worked sequentially; a stage does not start until its dependencies show ✅
   and the current stage's acceptance criteria are met.
 - See `docs/known-issues.md` for open defects/risks and `docs/decisions.md` for
