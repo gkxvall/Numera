@@ -14,19 +14,19 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 Status: 🔄 In progress
 
-| Task                                        | Status | Notes                                            |
-| ------------------------------------------- | ------ | ------------------------------------------------ |
-| Create Next.js TypeScript project           | ⬜     | App Router, `src/` layout                        |
-| Configure strict TypeScript                 | ⬜     | `strict: true`, no implicit any                  |
-| Configure Tailwind CSS                      | ⬜     | Numera palette tokens from plan §13.4            |
-| Configure ESLint and Prettier               | ⬜     | flat config, Next + TS rules                     |
-| Configure testing (Vitest, RTL, Playwright) | ⬜     | unit/integration/e2e separated                   |
-| Establish directory structure               | ⬜     | per plan §19 (`game-engine/`, `features/`, etc.) |
-| Add environment example file                | ⬜     | `.env.example`                                   |
-| Add initial README                          | ⬜     | run/build/test instructions                      |
-| Add contribution rules                      | ⬜     | `CONTRIBUTING.md`                                |
-| Add coding standards                        | ⬜     | `docs/architecture.md` or dedicated doc          |
-| Add CI workflow                             | ⬜     | GitHub Actions: lint, typecheck, test, build     |
+| Task                                        | Status | Notes                                                     |
+| ------------------------------------------- | ------ | --------------------------------------------------------- |
+| Create Next.js TypeScript project           | ✅     | Next.js 16 App Router, `src/` layout                      |
+| Configure strict TypeScript                 | ✅     | `strict: true` + noUncheckedIndexedAccess etc., no `any`  |
+| Configure Tailwind CSS                      | ✅     | Numera palette tokens from plan §13.4 in `globals.css`    |
+| Configure ESLint and Prettier               | ✅     | flat config, Next + TS rules, prettier-plugin-tailwindcss |
+| Configure testing (Vitest, RTL, Playwright) | ✅     | unit/integration/e2e separated, smoke tests passing       |
+| Establish directory structure               | ✅     | per plan §19, documented in `docs/architecture.md`        |
+| Add environment example file                | ✅     | `.env.example`                                            |
+| Add initial README                          | ✅     | run/build/test instructions                               |
+| Add contribution rules                      | ✅     | `CONTRIBUTING.md`                                         |
+| Add coding standards                        | ✅     | `docs/architecture.md`                                    |
+| Add CI workflow                             | ⬜     | GitHub Actions: lint, typecheck, test, build              |
 
 **Dependencies:** none (first stage).
 

@@ -11,6 +11,11 @@ All notable changes to this project are documented here. Format loosely follows
 - `docs/known-issues.md` — open issues and risk watch list.
 - `docs/decisions.md` — architecture decision log (ADR-0001, ADR-0002).
 - `docs/changelog.md` — this file.
+- Stage 1 foundation: Next.js 16 App Router + TypeScript strict mode, Tailwind v4 with
+  Numera design tokens, ESLint + Prettier, Vitest/RTL + Playwright test tooling.
+- `src/` directory structure per plan §19 (`game-engine/`, `features/`, `stores/`, etc.),
+  documented in `docs/architecture.md`.
+- `.env.example`, `CONTRIBUTING.md`, and a real project `README.md`.
 
 ---
 

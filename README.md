@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Numera
 
-## Getting Started
+**Count smart. Tap carefully. Survive.**
 
-First, run the development server:
+Numera is a mobile-first multiplayer number survival game for local party play, built
+with an original energetic cartoon-battle visual identity. Players take turns adding 1–3
+to a shared counter — whoever hits the secret target loses a life. Last player standing
+wins.
+
+The full product and implementation specification lives in [docs/plan.md](docs/plan.md).
+Current build status is tracked in [docs/tasks.md](docs/tasks.md).
+
+## Status
+
+Early foundation stage — see [docs/tasks.md](docs/tasks.md) for exactly what's built and
+what's next. Gameplay is not implemented yet.
+
+## Stack
+
+- [Next.js](https://nextjs.org) (App Router) + [React](https://react.dev) + TypeScript
+  (strict mode)
+- [Tailwind CSS](https://tailwindcss.com) v4
+- [Vitest](https://vitest.dev) + [React Testing Library](https://testing-library.com) for
+  unit/integration tests
+- [Playwright](https://playwright.dev) for end-to-end tests
+- ESLint + Prettier
+
+See [docs/architecture.md](docs/architecture.md) for the directory layout and coding
+standards.
+
+## Getting started
+
+Requires Node.js 20+.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command                 | Purpose                                                               |
+| ----------------------- | --------------------------------------------------------------------- |
+| `npm run dev`           | Start the development server                                          |
+| `npm run build`         | Production build                                                      |
+| `npm run start`         | Serve the production build                                            |
+| `npm run lint`          | ESLint                                                                |
+| `npm run lint:fix`      | ESLint with autofix                                                   |
+| `npm run format`        | Prettier — write                                                      |
+| `npm run format:check`  | Prettier — check only                                                 |
+| `npm run typecheck`     | TypeScript, no emit                                                   |
+| `npm run test`          | Unit/integration tests (Vitest), single run                           |
+| `npm run test:watch`    | Vitest in watch mode                                                  |
+| `npm run test:coverage` | Vitest with coverage report                                           |
+| `npm run e2e`           | Playwright end-to-end tests (run `npx playwright install` once first) |
+| `npm run verify`        | lint + typecheck + test + build, in sequence                          |
 
-## Learn More
+## Contributing
 
-To learn more about Next.js, take a look at the following resources:
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [docs/plan.md](docs/plan.md) — full product and implementation spec (authoritative)
+- [docs/tasks.md](docs/tasks.md) — stage-by-stage task tracker
+- [docs/architecture.md](docs/architecture.md) — directory layout, coding standards
+- [docs/decisions.md](docs/decisions.md) — architecture decision log
+- [docs/known-issues.md](docs/known-issues.md) — open issues and risks
+- [docs/changelog.md](docs/changelog.md) — change history
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Not yet decided. All game assets are original — no third-party or copyrighted game
+assets are used.
