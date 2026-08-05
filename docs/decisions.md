@@ -44,3 +44,56 @@ keeps the app runnable after every commit as required.
 
 **Consequences:** Slower wall-clock progress per response, but each increment is safe to
 stop at and safe to build on.
+
+---
+
+## ADR-0003 — Two-phase round resolution in the game engine
+
+**Date:** 2026-08-05
+**Status:** Accepted
+
+**Context:** Plan §19.1 defines a `CONTINUE_AFTER_LOSS` command but doesn't specify
+exactly when the engine should generate the next round's target — immediately on a
+target hit, or only once the UI is ready to move on.
+
+**Decision:** When a player hits the target, the engine moves the match to a
+`round_ended` status (life already deducted, elimination/placement already resolved,
+round already recorded) rather than immediately starting the next round. `SUBMIT_MOVE`
+is rejected while `round_ended`. The next round (new target, counter reset, turn
+advanced past the loser) is only generated when `CONTINUE_AFTER_LOSS` is dispatched.
+
+**Why:** Gives Stage 6's elimination/victory UI a clean, engine-enforced place to play
+its animation sequence before gameplay resumes, and closes a duplicate-submission
+window during that animation — both called out explicitly in plan §21/§26/§27.
+
+**Consequences:** UI code (Stage 5+) must dispatch `CONTINUE_AFTER_LOSS` after showing
+the elimination sequence; forgetting to do so leaves the match stuck in `round_ended`.
+
+---
+
+## ADR-0004 — Classic and Multi-Life share one life-based engine core
+
+**Date:** 2026-08-05
+**Status:** Accepted
+
+**Context:** Plan §7.1/§7.2 describe Classic Survival (1 life) and Multi-Life Survival
+(2-5 lives) as separate game modes, but their rules are mechanically identical except
+for `startingLives`. Score Rush, Reverse Countdown, Team Battle, and Chaos Mode (§7.3,
+§7.5, §7.4, §7.7) are structurally different (scoring instead of lives, subtraction
+instead of addition, team pooling, random events) and are explicitly Stage 8 work.
+
+**Decision:** The Stage 3 engine implements one shared life-based core, driven entirely
+by `MatchSettings.startingLives`, covering `"classic"`, `"multiLife"`, and
+`"suddenDeath"` (a Classic variant with tighter settings, not a different mechanic).
+Modes requiring different core mechanics are rejected by `createMatch` via an explicit
+`IMPLEMENTED_GAME_MODES` allow-list until Stage 8 implements them, rather than silently
+misbehaving under an unsupported mode.
+
+**Why:** Avoids duplicating the same turn/life/elimination logic across two mode
+implementations; keeps the engine honest about what's actually implemented versus what's
+merely typed (`GameMode` includes all plan-defined modes for forward compatibility, but
+only three are wired up).
+
+**Consequences:** Stage 8 must extend the engine (new resolvers, not new copies of the
+life-based core) rather than bolt on parallel logic for Score Rush/Reverse
+Countdown/Team Battle/Chaos.

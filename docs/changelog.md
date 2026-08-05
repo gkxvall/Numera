@@ -36,6 +36,16 @@ color variants. Added `/showcase`, a live component gallery. 24 unit tests added
 verified at desktop and mobile viewports via headless Chromium, which caught and fixed a
 flex-stretch layout bug before it shipped.
 
+### Stage 3 — Game engine: complete
+
+Added the deterministic, React-free game engine under `src/game-engine/`: types, seeded
+and secure random sources, target generation (adaptive ranges, no-3-consecutive-repeats
+rule), move validation and one-click-at-a-time processing (never overshoots the target),
+turn rotation, life loss/elimination/placement assignment, and the `applyCommand`
+reducer covering the full `GameCommand` set from plan §19.1. 88 unit tests, including
+full 2/4/6/10-player match simulations run purely through the public command API, and a
+determinism test that replays the same seed twice and asserts an identical trajectory.
+
 ---
 
 _No production releases yet._

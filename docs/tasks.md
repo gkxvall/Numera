@@ -8,7 +8,7 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 3 — Game engine
+## ➤ CURRENT STAGE: Stage 4 — Player and match setup
 
 ## Stage 1 — Repository and foundation
 
@@ -79,23 +79,43 @@ in the showcase page before merging.
 
 ## Stage 3 — Game engine
 
-Status: ⬜ Pending — dependency satisfied, not yet started
+Status: ✅ Done — all tasks complete, acceptance criteria verified
 
-Tasks: game types, target generator, match initializer, turn rotation, move processor,
-life/elimination logic, winner detection, round reset, seeded randomness, unit tests.
+| Task                       | Status | Notes                                                                  |
+| -------------------------- | ------ | ---------------------------------------------------------------------- |
+| Game types                 | ✅     | `types.ts` — Player, MatchSettings, ActiveMatch, GameCommand/Event     |
+| Target generator           | ✅     | `target-generator.ts` — range, adaptive table, no-3-in-a-row rule      |
+| Match initializer          | ✅     | `createMatch` in `engine.ts`                                           |
+| Turn rotation              | ✅     | `findNextActivePlayerIndex` in `rules.ts` — skips eliminated players   |
+| Move processor             | ✅     | `applyMoveToCounter` in `rules.ts` — one click at a time, no overshoot |
+| Life and elimination logic | ✅     | `resolveLifeLoss` in `engine.ts`                                       |
+| Winner detection           | ✅     | within `resolveLifeLoss` — completes match when 1 active player left   |
+| Round reset                | ✅     | `CONTINUE_AFTER_LOSS` command handler                                  |
+| Seeded randomness          | ✅     | `random.ts` — seeded (tests) + secure/crypto (production) sources      |
+| Unit tests                 | ✅     | 88 tests across 6 files, all passing                                   |
 
-**Acceptance criteria:** full matches run through tests without UI; all core engine tests
-pass; engine contains no React dependencies.
+**Acceptance criteria:** full matches run through tests without UI (verified: 2-player,
+4-player, 6-player, and 10-player simulations complete via the public command API only);
+all core engine tests pass (88/88); engine contains no React/Next dependencies (verified
+via import grep — zero matches).
 
 **Testing requirements:** unit tests for target generation, move validation, turn
-rotation, life deduction, elimination, match completion, danger calculation, seeded
-determinism.
+rotation, life deduction, elimination, match completion, danger calculation, and seeded
+determinism are all present — including a dedicated test that runs the same seed twice
+and asserts an identical match trajectory, and a test reproducing the plan's exact §6.4
+"counter must not overshoot the target" example.
+
+**Design note — two-phase round resolution:** hitting the target moves the match to a
+`round_ended` status (not immediately into the next round) so that Stage 6's elimination
+UI has a clean place to play its animation before the engine advances via
+`CONTINUE_AFTER_LOSS`. This also closes a duplicate-submission window: `SUBMIT_MOVE` is
+rejected outright while `round_ended`.
 
 ---
 
 ## Stage 4 — Player and match setup
 
-Status: ⬜ Pending — depends on Stages 2, 3
+Status: ⬜ Pending — dependencies satisfied (Stages 2, 3 done), not yet started
 
 Tasks: player creation, avatar selector, color selector, player reordering, bot creation,
 match presets, advanced settings, configuration validation (Zod), persist recent setup.
