@@ -16,6 +16,14 @@ All notable changes to this project are documented here. Format loosely follows
 - `src/` directory structure per plan §19 (`game-engine/`, `features/`, `stores/`, etc.),
   documented in `docs/architecture.md`.
 - `.env.example`, `CONTRIBUTING.md`, and a real project `README.md`.
+- `.github/workflows/ci.yml` — CI running lint, typecheck, format check, unit tests, and
+  build on every push/PR to `main`, plus a Playwright e2e job.
+
+### Stage 1 — Repository and foundation: complete
+
+All Stage 1 tasks and acceptance criteria are met: the app runs, lint/typecheck/tests/
+build all pass locally via `npm run verify`, and the Playwright smoke test passes via
+`npm run e2e`.
 
 ---
 

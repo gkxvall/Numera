@@ -8,25 +8,27 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 1 — Repository and foundation
+## ➤ CURRENT STAGE: Stage 2 — Design system
 
 ## Stage 1 — Repository and foundation
 
-Status: 🔄 In progress
+Status: ✅ Done — all tasks complete, acceptance criteria verified locally
+(`npm run verify` and `npm run e2e` both pass). CI workflow added; first run happens on
+push to `main`.
 
-| Task                                        | Status | Notes                                                     |
-| ------------------------------------------- | ------ | --------------------------------------------------------- |
-| Create Next.js TypeScript project           | ✅     | Next.js 16 App Router, `src/` layout                      |
-| Configure strict TypeScript                 | ✅     | `strict: true` + noUncheckedIndexedAccess etc., no `any`  |
-| Configure Tailwind CSS                      | ✅     | Numera palette tokens from plan §13.4 in `globals.css`    |
-| Configure ESLint and Prettier               | ✅     | flat config, Next + TS rules, prettier-plugin-tailwindcss |
-| Configure testing (Vitest, RTL, Playwright) | ✅     | unit/integration/e2e separated, smoke tests passing       |
-| Establish directory structure               | ✅     | per plan §19, documented in `docs/architecture.md`        |
-| Add environment example file                | ✅     | `.env.example`                                            |
-| Add initial README                          | ✅     | run/build/test instructions                               |
-| Add contribution rules                      | ✅     | `CONTRIBUTING.md`                                         |
-| Add coding standards                        | ✅     | `docs/architecture.md`                                    |
-| Add CI workflow                             | ⬜     | GitHub Actions: lint, typecheck, test, build              |
+| Task                                        | Status | Notes                                                                 |
+| ------------------------------------------- | ------ | --------------------------------------------------------------------- |
+| Create Next.js TypeScript project           | ✅     | Next.js 16 App Router, `src/` layout                                  |
+| Configure strict TypeScript                 | ✅     | `strict: true` + noUncheckedIndexedAccess etc., no `any`              |
+| Configure Tailwind CSS                      | ✅     | Numera palette tokens from plan §13.4 in `globals.css`                |
+| Configure ESLint and Prettier               | ✅     | flat config, Next + TS rules, prettier-plugin-tailwindcss             |
+| Configure testing (Vitest, RTL, Playwright) | ✅     | unit/integration/e2e separated, smoke tests passing                   |
+| Establish directory structure               | ✅     | per plan §19, documented in `docs/architecture.md`                    |
+| Add environment example file                | ✅     | `.env.example`                                                        |
+| Add initial README                          | ✅     | run/build/test instructions                                           |
+| Add contribution rules                      | ✅     | `CONTRIBUTING.md`                                                     |
+| Add coding standards                        | ✅     | `docs/architecture.md`                                                |
+| Add CI workflow                             | ✅     | `.github/workflows/ci.yml`: lint, typecheck, format, test, build, e2e |
 
 **Dependencies:** none (first stage).
 
@@ -44,7 +46,7 @@ Status: 🔄 In progress
 
 ## Stage 2 — Design system
 
-Status: ⬜ Pending — depends on Stage 1
+Status: ⬜ Pending — Stage 1 dependency satisfied, not yet started
 
 Tasks: color tokens, typography scale, spacing tokens, shadows/borders, buttons, cards,
 modals, progress bars, badges, player chips, animation utilities, responsive layout
