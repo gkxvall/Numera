@@ -5,7 +5,7 @@ only once it's verified fixed (not just believed fixed).
 
 ## Open
 
-_None yet — project has no code. This log will be populated as implementation begins._
+_None currently open._
 
 ## Watch list (risks, not yet issues)
 
@@ -20,4 +20,11 @@ _None yet — project has no code. This log will be populated as implementation 
 
 ## Resolved
 
-_None yet._
+- **CI typecheck failure: `LayoutProps<"/">` not found.** `src/app/layout.tsx` used
+  Next.js's generated `LayoutProps<"/">` ambient type, which only exists in `.next/types`
+  after `next dev`/`next build` has run once. Locally this was already generated, masking
+  the problem; a fresh CI checkout ran `tsc --noEmit` before any build step and failed.
+  Fixed by typing the layout's props explicitly (`Readonly<{ children: ReactNode }>`)
+  instead of depending on generated types. Lesson: verify `npm run verify` against a
+  clean checkout (or at least `rm -rf .next`), not just a warm local one, before trusting
+  a "typecheck passes" claim.

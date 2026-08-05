@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Lilita_One, Nunito } from "next/font/google";
 import "./globals.css";
 
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     "Numera is a fast multiplayer number survival game. Take turns, choose your move, avoid the secret number, and become the last player standing.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={`${displayFont.variable} ${sansFont.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">{children}</body>
