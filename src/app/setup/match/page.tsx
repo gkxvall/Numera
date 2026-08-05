@@ -9,10 +9,12 @@ import { createMatch, createPlayer } from "@/game-engine/engine";
 
 export default function MatchSettingsPage() {
   const router = useRouter();
-  const players = useMatchSetupStore((state) => state.players);
-  const settings = useMatchSetupStore((state) => state.settings);
 
   function handleStartMatch() {
+    // Read fresh rather than closing over the hook's render-time snapshot: onStartMatch
+    // fires synchronously right after MatchSettingsForm calls updateSettings(), before
+    // this component has re-rendered with the new value.
+    const { players, settings } = useMatchSetupStore.getState();
     const normalizedPlayers = normalizeNamesForValidation(players);
     const enginePlayers = normalizedPlayers.map((player) =>
       createPlayer({
@@ -21,6 +23,7 @@ export default function MatchSettingsPage() {
         avatarId: player.avatarId,
         colorId: player.colorId,
         isBot: player.isBot,
+        botDifficulty: player.botDifficulty,
       }),
     );
     const match = createMatch(crypto.randomUUID(), settings, enginePlayers);

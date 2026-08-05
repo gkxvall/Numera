@@ -34,12 +34,15 @@ export function MatchSettingsForm({ onBack, onStartMatch }: MatchSettingsFormPro
     mode: "onChange",
   });
 
-  // Presets are applied in the store, then mirrored into the form as its baseline —
-  // the form itself stays the single source of truth for in-progress edits.
+  // Presets are applied in the store, then mirrored into the form as its baseline — the
+  // form itself stays the single source of truth for in-progress edits. Deliberately
+  // keyed on `selectedPresetId`, not `settings`: the store's `settings` object gets a new
+  // reference on *any* update, including the persist middleware's passive rehydration on
+  // mount, which would otherwise silently wipe out whatever the player had just typed.
   useEffect(() => {
     reset(settings);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-sync when the store's settings identity changes (preset applied), not on every render
-  }, [settings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- settings is read fresh each run; only re-sync when selectedPresetId actually changes (a deliberate preset click), see comment above
+  }, [selectedPresetId]);
 
   const timerEnabled = watch("turnTimerSeconds") !== null;
 

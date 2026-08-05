@@ -3,6 +3,7 @@ import {
   GameRuleViolation,
   IMPLEMENTED_GAME_MODES,
   type ActiveMatch,
+  type BotDifficulty,
   type GameCommand,
   type GameEvent,
   type MatchSettings,
@@ -33,6 +34,7 @@ export function createPlayer(input: {
   avatarId: string;
   colorId: string;
   isBot?: boolean;
+  botDifficulty?: BotDifficulty;
 }): Player {
   return {
     id: input.id,
@@ -46,6 +48,7 @@ export function createPlayer(input: {
     powerUps: [],
     isEliminated: false,
     isBot: input.isBot ?? false,
+    botDifficulty: input.botDifficulty,
     stats: createEmptyMatchStats(),
   };
 }

@@ -18,9 +18,9 @@ function nextColorId(index: number): string {
   return PLAYER_COLORS[index % PLAYER_COLORS.length]?.id ?? DEFAULT_PLAYER_COLOR_ID;
 }
 
-function createDefaultPlayer(index: number): PlayerDraft {
+function createDefaultPlayer(index: number, id: string = createId()): PlayerDraft {
   return {
-    id: createId(),
+    id,
     name: `Player ${index + 1}`,
     avatarId: nextAvatarId(index),
     colorId: nextColorId(index),
@@ -47,8 +47,13 @@ export interface MatchSetupState {
   resetToDefaults: () => void;
 }
 
+/**
+ * Fixed ids (not crypto.randomUUID()) — this seeds the store's initial state, which is
+ * evaluated both during SSR and during client hydration. A random id here would differ
+ * between the two passes and produce a hydration mismatch on every fresh page load.
+ */
 function initialPlayers(): PlayerDraft[] {
-  return [createDefaultPlayer(0), createDefaultPlayer(1)];
+  return [createDefaultPlayer(0, "default-player-1"), createDefaultPlayer(1, "default-player-2")];
 }
 
 export const useMatchSetupStore = create<MatchSetupState>()(

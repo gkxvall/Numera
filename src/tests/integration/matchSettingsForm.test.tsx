@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MatchSettingsForm } from "@/features/game/MatchSettingsForm";
 import { useMatchSetupStore } from "@/stores/matchSetupStore";
@@ -68,5 +68,24 @@ describe("MatchSettingsForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Back" }));
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not wipe in-progress edits when the store's settings object is replaced without a preset change (regression: persist rehydration used to reset the form)", async () => {
+    const user = userEvent.setup();
+    render(<MatchSettingsForm onBack={vi.fn()} onStartMatch={vi.fn()} />);
+
+    const maxTarget = screen.getByLabelText("Max target");
+    await user.clear(maxTarget);
+    await user.type(maxTarget, "8");
+    expect(maxTarget).toHaveValue(8);
+
+    // Simulate the store's settings object getting a new reference for an unrelated
+    // reason (e.g. the persist middleware's async rehydration) without the user having
+    // touched a preset. selectedPresetId is unchanged.
+    act(() => {
+      useMatchSetupStore.setState((state) => ({ settings: { ...state.settings } }));
+    });
+
+    expect(screen.getByLabelText("Max target")).toHaveValue(8);
   });
 });

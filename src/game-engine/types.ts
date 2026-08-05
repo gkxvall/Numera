@@ -90,6 +90,7 @@ export interface Player {
   powerUps: PlayerPowerUp[];
   isEliminated: boolean;
   isBot: boolean;
+  botDifficulty?: BotDifficulty;
   placement?: number;
   stats: PlayerMatchStats;
 }

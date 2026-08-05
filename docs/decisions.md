@@ -148,3 +148,33 @@ cannot see the secret target (plan §10.2), verified by a runtime test.
 
 **Consequences:** Stage 5/7 can call `chooseBotMove` directly when it's a bot's turn
 instead of needing to design and test bot logic under gameplay-UI time pressure.
+
+---
+
+## ADR-0007 — Gate round_ended/completed screens on the counter animation, not just match.status
+
+**Date:** 2026-08-05
+**Status:** Accepted
+
+**Context:** The Stage 3 engine resolves a target hit synchronously: the same
+`SUBMIT_MOVE` dispatch that lands on the target also flips `match.status` to
+`round_ended` or `completed` (ADR-0003). The Stage 5 UI additionally animates the counter
+ticking up to that final value client-side, after the fact, over a few hundred
+milliseconds (`useSteppedCounter`). Gating the round-summary/winner screens purely on
+`match.status` would swap them in _before_ the tick animation has a chance to play,
+since the engine has already "finished" by the time the first tick fires.
+
+**Decision:** `GameplayScreen` keeps rendering the in-progress gameplay layout whenever
+`useSteppedCounter`'s `isAnimating` is still true, even if `match.status` has already
+moved past `in_progress` — the round-summary and winner screens only appear once
+`!isAnimating`.
+
+**Why:** Otherwise the counter's climb to the target — the single most important visual
+moment in the game (plan §15.7: "the shared counter must be the strongest visual
+element") — would never actually be seen.
+
+**Consequences:** Every screen that branches on `match.status` (this one, and future
+Stage 6 elimination/victory screens) must remember to also check `isAnimating`, not
+`status` alone. `TurnTimer` and the Pause button are additionally gated on
+`status === "in_progress"` specifically, since they must stop operating the instant a
+round ends even while the counter is still visually finishing its animation.

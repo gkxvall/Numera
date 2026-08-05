@@ -8,7 +8,7 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 5 — Core gameplay UI
+## ➤ CURRENT STAGE: Stage 6 — Elimination and victory experience
 
 ## Stage 1 — Repository and foundation
 
@@ -168,22 +168,71 @@ console errors through the full flow.
 
 ## Stage 5 — Core gameplay UI
 
-Status: ⬜ Pending — dependencies satisfied (Stages 2, 3, 4 done), not yet started
+Status: ✅ Done — all tasks complete, acceptance criteria verified
 
-Tasks: pass-the-phone screen, active player display, counter, move buttons, player order,
-life indicators, timer, round state, match log, connect UI to engine.
+| Task                  | Status | Notes                                                                                  |
+| --------------------- | ------ | -------------------------------------------------------------------------------------- |
+| Pass-the-phone screen | ✅     | `PassThePhoneScreen` — hides controls until "Tap when ready"; skipped for bots         |
+| Active player display | ✅     | `PlayerOrderStrip` (active ring) + in-turn prompt text                                 |
+| Counter               | ✅     | `Counter` + `useSteppedCounter` — ticks one click at a time, never overshoots          |
+| Move buttons          | ✅     | `MoveButtons` — disabled during the tick animation                                     |
+| Player order          | ✅     | `PlayerOrderStrip`                                                                     |
+| Life indicators       | ✅     | via `PlayerChip` (Stage 2), fed live match data                                        |
+| Timer                 | ✅     | `TurnTimer` — pauses during animation, fires exactly once per turn                     |
+| Round state           | ✅     | `GameplayScreen` status branching (in_progress/round_ended/paused/completed)           |
+| Match log             | ✅     | `MatchLog` — last 5 moves                                                              |
+| Connect UI to engine  | ✅     | `activeMatchStore.dispatch` wraps `applyCommand`; bots auto-play via `bot-strategy.ts` |
 
-**Acceptance criteria:** a complete Classic match is playable; refresh recovery works; no
-duplicate moves can occur.
+**Acceptance criteria:** a complete Classic match is playable — verified via a permanent
+Playwright e2e test (`full-match.spec.ts`, runs in CI on both desktop and mobile
+viewports) that plays a real match through the actual UI to a winner screen with zero
+console errors, plus multi-life mode manually verified through a full round transition.
+Refresh recovery works — verified by simulating a true module reload (not just clearing
+state) and confirming `activeMatchStore`'s Zustand `persist` middleware restores an
+in-progress match exactly. No duplicate moves can occur — `MoveButtons` disables during
+the tick animation, the engine independently rejects out-of-turn/stale commands (Stage
+3), and a dedicated test asserts a rapid double-tap never double-applies a move.
 
-**Testing requirements:** integration test for full Classic match flow; race-condition
-tests for duplicate submission and timer/animation overlap.
+**Testing requirements:** integration test for the full Classic match flow, a race-guard
+test for duplicate submission, `useSteppedCounter`/`TurnTimer` unit tests covering the
+animation-pause and single-fire-per-turn guarantees, and the e2e regression test above.
+
+**Real bugs found and fixed via real-browser testing (neither caught by unit/RTL tests):**
+
+1. **Hydration mismatch on every fresh page load.** `matchSetupStore`'s two default seed
+   players called `crypto.randomUUID()` at module-evaluation time, which runs during both
+   SSR and client hydration — producing different ids each time and breaking hydration.
+   Fixed with fixed ids (`"default-player-1"/"2"`) for the seed players only; ids for
+   players added afterward still use `crypto.randomUUID()` (client-interaction-only, no
+   SSR risk).
+2. **Match settings edits were silently discarded.** Two compounding bugs: (a)
+   `MatchSettingsForm` re-synced its form from the store's `settings` object on _any_
+   reference change (including the persist middleware's passive rehydration), wiping
+   in-progress edits — fixed by keying the sync effect on `selectedPresetId` instead,
+   which only changes on a deliberate preset click; (b) `/setup/match/page.tsx` read
+   `settings` from a render-time hook snapshot inside `handleStartMatch`, which runs
+   synchronously right after `updateSettings()` but before React re-renders with the new
+   value — fixed by reading `useMatchSetupStore.getState()` fresh at call time. Both are
+   covered by regression tests now (`matchSettingsForm.test.tsx`,
+   `matchSettingsPage.test.tsx`) and the e2e test asserts the actual generated target
+   stayed within the edited (not default) range.
+
+**Design note:** hitting the target flips `match.status` to `round_ended`/`completed` in
+the very same engine dispatch as the winning move (Stage 3's design). `GameplayScreen`
+deliberately keeps showing the in-progress layout while `useSteppedCounter`'s
+`isAnimating` is still true, even after status has changed, so the counter's tick-up to
+the target is actually visible before the round-summary/winner screen takes over.
+
+**Known limitation carried forward to Stage 6:** the round-summary and winner screens are
+intentionally minimal placeholders that say so explicitly ("The full elimination
+sequence/victory celebration arrives in Stage 6") — no confetti, screen shake, or
+rankings yet.
 
 ---
 
 ## Stage 6 — Elimination and victory experience
 
-Status: ⬜ Pending — depends on Stage 5
+Status: ⬜ Pending — dependency satisfied (Stage 5 done), not yet started
 
 Tasks: target-hit sequence, life-loss sequence, elimination animation, round summary,
 winner screen, final ranking, rematch flow, return-home flow.

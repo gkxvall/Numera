@@ -61,6 +61,22 @@ starts a match through the Stage 3 engine. 51 new tests; the full flow was also 
 through a real headless-Chromium browser at a mobile viewport with zero console errors,
 which caught and fixed a locator issue in the verification script itself (not app code).
 
+### Stage 5 — Core gameplay UI: complete
+
+Built the real Classic-match gameplay screen under `src/features/game/`:
+`PassThePhoneScreen`, `Counter` (with `useSteppedCounter`, a tested hook that ticks the
+shared counter one click at a time and never overshoots), `MoveButtons`,
+`PlayerOrderStrip`, `TurnTimer` (pauses during animation, fires exactly once per turn),
+`MatchLog`, and `GameplayScreen` tying it together with `activeMatchStore`. Bots now play
+automatically via `bot-strategy.ts`. Wired into `/play`, replacing the Stage 4
+confirmation stub. Added a permanent Playwright e2e test (`full-match.spec.ts`) that
+plays a real match through the actual UI to a winner screen.
+
+Real-browser testing (not just unit tests) caught and fixed two genuine bugs: a
+hydration mismatch from `crypto.randomUUID()` running at store-module-eval time, and
+match settings edits being silently discarded before match creation (a stale-closure bug
+compounded by an over-eager form-reset effect). Both have regression tests now.
+
 ---
 
 _No production releases yet._

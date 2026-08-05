@@ -5,6 +5,7 @@ import { createSecureRandomSource } from "@/game-engine/random";
 import {
   GameRuleViolation,
   type ActiveMatch,
+  type DangerLevel,
   type GameCommand,
   type GameEvent,
 } from "@/game-engine/types";
@@ -13,9 +14,18 @@ export interface ActiveMatchState {
   match: ActiveMatch | null;
   lastEvents: GameEvent[];
   lastError: string | null;
+  dangerLevel: DangerLevel | null;
   dispatch: (command: GameCommand) => void;
   clearError: () => void;
   abandonAndClear: () => void;
+}
+
+function extractDangerLevel(events: GameEvent[]): DangerLevel | null {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    if (event?.type === "DANGER_LEVEL_CHANGED") return event.level;
+  }
+  return null;
 }
 
 export const useActiveMatchStore = create<ActiveMatchState>()(
@@ -24,6 +34,7 @@ export const useActiveMatchStore = create<ActiveMatchState>()(
       match: null,
       lastEvents: [],
       lastError: null,
+      dangerLevel: null,
 
       dispatch: (command) => {
         const { match } = get();
@@ -33,7 +44,18 @@ export const useActiveMatchStore = create<ActiveMatchState>()(
         }
         try {
           const result = applyCommand(match, command, createSecureRandomSource());
-          set({ match: result.state, lastEvents: result.events, lastError: null });
+          const dangerFromEvents = extractDangerLevel(result.events);
+          set({
+            match: result.state,
+            lastEvents: result.events,
+            lastError: null,
+            // A new round or a fresh turn without a computed danger level yet should not
+            // keep showing the previous turn's danger level.
+            dangerLevel:
+              command.type === "SUBMIT_MOVE" || command.type === "TURN_TIMEOUT"
+                ? dangerFromEvents
+                : null,
+          });
         } catch (error) {
           const message =
             error instanceof GameRuleViolation ? error.message : "Something went wrong.";
@@ -43,7 +65,8 @@ export const useActiveMatchStore = create<ActiveMatchState>()(
 
       clearError: () => set({ lastError: null }),
 
-      abandonAndClear: () => set({ match: null, lastEvents: [], lastError: null }),
+      abandonAndClear: () =>
+        set({ match: null, lastEvents: [], lastError: null, dangerLevel: null }),
     }),
     {
       name: "numera-active-match",
@@ -54,6 +77,6 @@ export const useActiveMatchStore = create<ActiveMatchState>()(
 
 /** Creates a match and immediately starts it, in one call — used by the setup flow. */
 export function startNewMatch(match: ActiveMatch): void {
-  useActiveMatchStore.setState({ match, lastEvents: [], lastError: null });
+  useActiveMatchStore.setState({ match, lastEvents: [], lastError: null, dangerLevel: null });
   useActiveMatchStore.getState().dispatch({ type: "START_MATCH" });
 }

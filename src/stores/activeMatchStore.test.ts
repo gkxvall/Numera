@@ -12,7 +12,7 @@ function twoPlayers() {
 
 beforeEach(() => {
   localStorage.clear();
-  useActiveMatchStore.setState({ match: null, lastEvents: [], lastError: null });
+  useActiveMatchStore.setState({ match: null, lastEvents: [], lastError: null, dangerLevel: null });
 });
 
 describe("startNewMatch", () => {
@@ -62,5 +62,53 @@ describe("abandonAndClear", () => {
     startNewMatch(match);
     useActiveMatchStore.getState().abandonAndClear();
     expect(useActiveMatchStore.getState().match).toBeNull();
+  });
+});
+
+describe("dangerLevel tracking", () => {
+  it("records a danger level after a move when the indicator is enabled", () => {
+    const match = createMatch(
+      "m1",
+      makeTestSettings({ dangerIndicatorEnabled: true, targetRange: { min: 90, max: 100 } }),
+      twoPlayers(),
+    );
+    startNewMatch(match);
+    const activeId = useActiveMatchStore.getState().match!.playerOrder[0]!;
+    useActiveMatchStore.getState().dispatch({ type: "SUBMIT_MOVE", playerId: activeId, amount: 1 });
+
+    expect(useActiveMatchStore.getState().dangerLevel).not.toBeNull();
+  });
+
+  it("stays null when the danger indicator is disabled", () => {
+    const match = createMatch(
+      "m1",
+      makeTestSettings({ dangerIndicatorEnabled: false, targetRange: { min: 90, max: 100 } }),
+      twoPlayers(),
+    );
+    startNewMatch(match);
+    const activeId = useActiveMatchStore.getState().match!.playerOrder[0]!;
+    useActiveMatchStore.getState().dispatch({ type: "SUBMIT_MOVE", playerId: activeId, amount: 1 });
+
+    expect(useActiveMatchStore.getState().dangerLevel).toBeNull();
+  });
+
+  it("clears on a fresh round so a stale danger level never leaks across turns", () => {
+    const match = createMatch(
+      "m1",
+      makeTestSettings({
+        mode: "multiLife",
+        startingLives: 2,
+        dangerIndicatorEnabled: true,
+        targetRange: { min: 2, max: 2 },
+      }),
+      twoPlayers(),
+    );
+    startNewMatch(match);
+    const loserId = useActiveMatchStore.getState().match!.playerOrder[0]!;
+    useActiveMatchStore.getState().dispatch({ type: "SUBMIT_MOVE", playerId: loserId, amount: 2 });
+    expect(useActiveMatchStore.getState().match!.status).toBe("round_ended");
+
+    useActiveMatchStore.getState().dispatch({ type: "CONTINUE_AFTER_LOSS" });
+    expect(useActiveMatchStore.getState().dangerLevel).toBeNull();
   });
 });
