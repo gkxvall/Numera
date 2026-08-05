@@ -1,3 +1,4 @@
+export { Avatar, type AvatarProps } from "./Avatar";
 export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button";
 export { Card, type CardProps, type CardPadding } from "./Card";
 export { Modal, type ModalProps } from "./Modal";

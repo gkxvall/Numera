@@ -8,7 +8,7 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 4 — Player and match setup
+## ➤ CURRENT STAGE: Stage 5 — Core gameplay UI
 
 ## Stage 1 — Repository and foundation
 
@@ -115,21 +115,60 @@ rejected outright while `round_ended`.
 
 ## Stage 4 — Player and match setup
 
-Status: ⬜ Pending — dependencies satisfied (Stages 2, 3 done), not yet started
+Status: ✅ Done — all tasks complete, acceptance criteria verified
 
-Tasks: player creation, avatar selector, color selector, player reordering, bot creation,
-match presets, advanced settings, configuration validation (Zod), persist recent setup.
+| Task                           | Status | Notes                                                                                  |
+| ------------------------------ | ------ | -------------------------------------------------------------------------------------- |
+| Player creation                | ✅     | `PlayerSetupScreen` + `matchSetupStore` — add/remove up to 2-10                        |
+| Avatar selector                | ✅     | 10 original SVG avatars (`Avatar`, `AvatarPicker`) — no third-party art                |
+| Color selector                 | ✅     | `ColorPicker`, 5 Numera palette colors                                                 |
+| Player reordering              | ✅     | Up/down buttons (accessible alternative to drag — see design note)                     |
+| Bot creation                   | ✅     | "Add bot" + per-bot personality select, backed by a real `bot-strategy.ts`             |
+| Match presets                  | ✅     | Quick / Party / Strategic / Sudden Death / Custom (`matchPresets.ts`)                  |
+| Advanced settings              | ✅     | `MatchSettingsForm` (React Hook Form + Zod) — mode, lives, range, move, timer, toggles |
+| Configuration validation (Zod) | ✅     | `features/players/schemas.ts`, `features/game/schemas.ts`                              |
+| Persist recent setup           | ✅     | `matchSetupStore` uses Zustand `persist` to localStorage                               |
 
-**Acceptance criteria:** host can configure and start a valid match; invalid
-configurations cannot start.
+**Acceptance criteria:** host can configure and start a valid match — verified with a
+real headless-Chromium run through the entire flow (home → add/rename players → add a
+bot → customize avatar/color → continue → apply a preset → start match → confirmation
+screen showing a genuinely-created, engine-backed match with the target correctly never
+rendered). Invalid configurations cannot start: the Continue and Start Match buttons are
+`disabled` whenever Zod validation fails (blank name, target range with max ≤ min,
+fewer than 2 / more than 10 players), verified by both unit and integration tests.
 
-**Testing requirements:** Zod schema validation tests; component tests for setup flow.
+**Testing requirements:** 51 new tests across schemas (player + match settings), the
+bot-strategy module (including a structural/runtime check that the secret target is
+never exposed to bot decision logic), the two Zustand stores, the `Avatar` component,
+and integration tests driving `PlayerSetupScreen`/`MatchSettingsForm` end to end. Also
+manually verified via headless-Chromium screenshots at a 390px mobile viewport with zero
+console errors through the full flow.
+
+**Design notes:**
+
+- **Reordering uses up/down buttons, not drag-and-drop.** This satisfies the "player
+  reordering" task while staying keyboard- and touch-accessible without a drag library —
+  consistent with plan §23's "no gameplay action requires precise small tapping" and
+  avoiding an unnecessary dependency.
+- **Bots are functional now, not just data.** `src/game-engine/bot-strategy.ts` (from
+  plan's engine file list) was pulled forward from its unassigned stage so "Add bot" is a
+  genuinely working control end-to-end — a bot in the roster can actually choose a valid
+  move once Stage 5 wires gameplay, rather than being a dead configuration flag. Its
+  `BotDecisionContext` type structurally excludes the secret target (plan §10.2).
+- **`powerUpsEnabled` and `specialEventsEnabled` are intentionally not exposed in the
+  settings UI yet** — those systems don't exist until Stage 7, and plan §9 (special
+  events) has no assigned stage at all (see `docs/known-issues.md`). Surfacing a toggle
+  with no effect would violate "no fake or placeholder controls."
+- **A minimal `activeMatchStore` was added** (holds the created `ActiveMatch`, persisted
+  to localStorage) so "Start match" genuinely creates and starts a real match via the
+  Stage 3 engine. `/play` is an honest confirmation screen, not a gameplay UI — it says
+  so explicitly and is replaced by Stage 5.
 
 ---
 
 ## Stage 5 — Core gameplay UI
 
-Status: ⬜ Pending — depends on Stages 2, 3, 4
+Status: ⬜ Pending — dependencies satisfied (Stages 2, 3, 4 done), not yet started
 
 Tasks: pass-the-phone screen, active player display, counter, move buttons, player order,
 life indicators, timer, round state, match log, connect UI to engine.

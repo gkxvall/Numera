@@ -8,10 +8,9 @@ import {
   type MatchSettings,
   type Player,
   type RoundRecord,
-  type TargetRange,
 } from "./types";
 import type { RandomSource } from "./random";
-import { generateTarget, getAdaptiveTargetRange } from "./target-generator";
+import { generateTarget, resolveTargetRange } from "./target-generator";
 import { validateMoveAmount } from "./move-validator";
 import {
   applyMoveToCounter,
@@ -112,11 +111,6 @@ export function applyCommand(
   }
 }
 
-function effectiveTargetRange(state: ActiveMatch): TargetRange {
-  if (!state.settings.adaptiveTargetRange) return state.settings.targetRange;
-  return getAdaptiveTargetRange(getActivePlayers(state.players).length);
-}
-
 function activePlayerId(state: ActiveMatch): string {
   const id = state.playerOrder[state.activePlayerIndex];
   if (!id) throw new GameRuleViolation("No active player is set for this turn.");
@@ -142,9 +136,7 @@ function startMatch(state: ActiveMatch, random: RandomSource): CommandResult {
     ? shuffle(state.playerOrder, random)
     : state.playerOrder;
 
-  const range = state.settings.adaptiveTargetRange
-    ? getAdaptiveTargetRange(getActivePlayers(state.players).length)
-    : state.settings.targetRange;
+  const range = resolveTargetRange(state.settings, getActivePlayers(state.players).length);
   const target = generateTarget(range, 0, [], random);
   const startedAt = new Date().toISOString();
 
@@ -330,7 +322,7 @@ function continueAfterLoss(state: ActiveMatch, random: RandomSource): CommandRes
     state.activePlayerIndex,
   );
 
-  const range = effectiveTargetRange(state);
+  const range = resolveTargetRange(state.settings, getActivePlayers(state.players).length);
   const recentTargets = state.roundHistory.map((round) => round.target);
   const target = generateTarget(range, 0, recentTargets, random);
   const nextRound = state.currentRound + 1;

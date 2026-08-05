@@ -1,5 +1,5 @@
 import type { RandomSource } from "./random";
-import type { TargetRange } from "./types";
+import type { MatchSettings, TargetRange } from "./types";
 
 /** Suggested adaptive ranges by active player count (plan §6.5). */
 const ADAPTIVE_RANGES: ReadonlyArray<{ maxPlayers: number; range: TargetRange }> = [
@@ -14,6 +14,15 @@ const ADAPTIVE_RANGES: ReadonlyArray<{ maxPlayers: number; range: TargetRange }>
 export function getAdaptiveTargetRange(activePlayerCount: number): TargetRange {
   const match = ADAPTIVE_RANGES.find((entry) => activePlayerCount <= entry.maxPlayers);
   return match?.range ?? ADAPTIVE_RANGES[ADAPTIVE_RANGES.length - 1]!.range;
+}
+
+/** The range actually in effect for target generation right now, given match settings. */
+export function resolveTargetRange(
+  settings: Pick<MatchSettings, "adaptiveTargetRange" | "targetRange">,
+  activePlayerCount: number,
+): TargetRange {
+  if (!settings.adaptiveTargetRange) return settings.targetRange;
+  return getAdaptiveTargetRange(activePlayerCount);
 }
 
 const MAX_GENERATION_ATTEMPTS = 50;

@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { Button } from "@/components";
+
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
@@ -5,9 +8,12 @@ export default function Home() {
         Numera
       </h1>
       <p className="text-foreground max-w-sm text-lg">Count smart. Tap carefully. Survive.</p>
-      <p className="text-foreground/70 max-w-sm text-sm">
-        Project foundation is set up. Gameplay is coming in the next stages.
-      </p>
+      <Link href="/setup/players">
+        <Button size="lg">Play locally</Button>
+      </Link>
+      <Link href="/showcase" className="text-foreground/60 text-sm underline underline-offset-4">
+        View design system
+      </Link>
     </main>
   );
 }

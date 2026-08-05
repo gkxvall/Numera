@@ -97,3 +97,54 @@ only three are wired up).
 **Consequences:** Stage 8 must extend the engine (new resolvers, not new copies of the
 life-based core) rather than bolt on parallel logic for Score Rush/Reverse
 Countdown/Team Battle/Chaos.
+
+---
+
+## ADR-0005 — Player reordering uses buttons, not drag-and-drop
+
+**Date:** 2026-08-05
+**Status:** Accepted
+
+**Context:** Plan §15.4 lists "Drag-and-drop ordering" as one way to satisfy the Stage 4
+"player reordering" task. True pointer-based drag-and-drop is hard to make keyboard- and
+screen-reader-accessible without significant extra work (focus management, live-region
+announcements of the new order, a non-pointer fallback anyway), and would add a
+dependency.
+
+**Decision:** `PlayerCard` exposes explicit "move up" / "move down" buttons instead of a
+drag handle.
+
+**Why:** Satisfies the actual task (players can be reordered) while being inherently
+keyboard- and touch-accessible with zero extra dependencies, consistent with plan §23
+("no gameplay action requires precise small tapping") and the "avoid unnecessary
+dependencies" development principle. A future stage can add drag-and-drop as a
+progressive enhancement on top of the same `reorderPlayers` store action without changing
+its contract.
+
+**Consequences:** None functionally; reordering is one extra tap per step versus a single
+drag gesture.
+
+---
+
+## ADR-0006 — `bot-strategy.ts` built in Stage 4, ahead of its listed stage
+
+**Date:** 2026-08-05
+**Status:** Accepted
+
+**Context:** Plan §19 lists `bot-strategy.ts` among the engine's files, but no
+Development Stage (§31) explicitly schedules bot decision-making logic. Stage 4's task
+list includes "Build bot creation," which is UI for adding a bot to the roster — but a
+bot player with no way to actually choose a move would leave any match containing one
+permanently stuck once gameplay UI (Stage 5) tries to advance to that bot's turn.
+
+**Decision:** Implement `src/game-engine/bot-strategy.ts` now, in Stage 4, rather than
+deferring it to whichever later stage might have implied it.
+
+**Why:** "Add bot" must be a genuinely working control per the project's engineering
+requirements ("no fake buttons or placeholder interactions," "every visible control must
+work") — not just a data flag that silently breaks gameplay two stages later.
+`BotDecisionContext` is deliberately typed without a `target` field so bots structurally
+cannot see the secret target (plan §10.2), verified by a runtime test.
+
+**Consequences:** Stage 5/7 can call `chooseBotMove` directly when it's a bot's turn
+instead of needing to design and test bot logic under gameplay-UI time pressure.

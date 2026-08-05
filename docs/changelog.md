@@ -46,6 +46,21 @@ reducer covering the full `GameCommand` set from plan §19.1. 88 unit tests, inc
 full 2/4/6/10-player match simulations run purely through the public command API, and a
 determinism test that replays the same seed twice and asserts an identical trajectory.
 
+### Stage 4 — Player and match setup: complete
+
+Added `src/game-engine/bot-strategy.ts` (real move-selection logic per bot personality,
+with a `BotDecisionContext` type that structurally excludes the secret target), 10
+original SVG avatars (`Avatar`, `AvatarPicker`), `ColorPicker`, match presets
+(Quick/Party/Strategic/Sudden Death/Custom), Zod schemas for players and match settings,
+and two Zustand stores (`matchSetupStore` with localStorage persistence,
+`activeMatchStore` wrapping the engine's `applyCommand`). Built `PlayerSetupScreen`
+(add/remove/reorder/duplicate players, avatar/color pickers, add bot, randomize all) and
+`MatchSettingsForm` (React Hook Form + Zod, live preset switching). Wired into
+`/setup/players` → `/setup/match` → `/play`, where "Start match" genuinely creates and
+starts a match through the Stage 3 engine. 51 new tests; the full flow was also driven
+through a real headless-Chromium browser at a mobile viewport with zero console errors,
+which caught and fixed a locator issue in the verification script itself (not app code).
+
 ---
 
 _No production releases yet._
