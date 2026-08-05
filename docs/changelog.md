@@ -25,6 +25,17 @@ All Stage 1 tasks and acceptance criteria are met: the app runs, lint/typecheck/
 build all pass locally via `npm run verify`, and the Playwright smoke test passes via
 `npm run e2e`.
 
+### Stage 2 — Design system: complete
+
+Added the original Numera component library under `src/components/`: `Button` (5
+variants, chunky offset-shadow press effect), `Card`, `Modal` (accessible: focus trap,
+Escape-to-close, backdrop click, focus restore), `ProgressBar`, `Badge`, `PlayerChip`,
+`AnimatedNumber` (reduced-motion aware, screen-reader announced), plus `Container`/`Stack`
+layout primitives. Extended `globals.css` with chunky shadow/radius tokens and darker
+color variants. Added `/showcase`, a live component gallery. 24 unit tests added; visually
+verified at desktop and mobile viewports via headless Chromium, which caught and fixed a
+flex-stretch layout bug before it shipped.
+
 ---
 
-_No releases yet. Entries above reflect pre-Stage-1 planning artifacts only._
+_No production releases yet._

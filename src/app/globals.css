@@ -4,12 +4,17 @@
   --numera-blue: #2f80ff;
   --numera-blue-dark: #1456c4;
   --numera-yellow: #ffd447;
+  --numera-yellow-dark: #e0ab00;
   --numera-red: #ff4d5f;
+  --numera-red-dark: #d6303f;
   --numera-purple: #8854ff;
+  --numera-purple-dark: #6a3fd1;
   --numera-green: #39d98a;
+  --numera-green-dark: #1fae6b;
   --numera-navy: #16213e;
   --numera-cream: #fff9ec;
   --numera-outline: #111827;
+  --numera-surface: #ffffff;
 
   --background: var(--numera-cream);
   --foreground: var(--numera-outline);
@@ -19,24 +24,38 @@
   --color-numera-blue: var(--numera-blue);
   --color-numera-blue-dark: var(--numera-blue-dark);
   --color-numera-yellow: var(--numera-yellow);
+  --color-numera-yellow-dark: var(--numera-yellow-dark);
   --color-numera-red: var(--numera-red);
+  --color-numera-red-dark: var(--numera-red-dark);
   --color-numera-purple: var(--numera-purple);
+  --color-numera-purple-dark: var(--numera-purple-dark);
   --color-numera-green: var(--numera-green);
+  --color-numera-green-dark: var(--numera-green-dark);
   --color-numera-navy: var(--numera-navy);
   --color-numera-cream: var(--numera-cream);
   --color-numera-outline: var(--numera-outline);
+  --color-numera-surface: var(--numera-surface);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
+
+  --radius-chunky: 1.25rem;
+  --radius-chunky-lg: 1.75rem;
+
+  --shadow-chunky-sm: 2px 2px 0 0 var(--numera-outline);
+  --shadow-chunky: 4px 4px 0 0 var(--numera-outline);
+  --shadow-chunky-lg: 6px 6px 0 0 var(--numera-outline);
+  --shadow-chunky-press: 1px 1px 0 0 var(--numera-outline);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: var(--numera-navy);
     --foreground: var(--numera-cream);
+    --numera-surface: #1e2b4d;
   }
 }
 

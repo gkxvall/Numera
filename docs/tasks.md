@@ -8,7 +8,7 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 2 — Design system
+## ➤ CURRENT STAGE: Stage 3 — Game engine
 
 ## Stage 1 — Repository and foundation
 
@@ -46,23 +46,40 @@ push to `main`.
 
 ## Stage 2 — Design system
 
-Status: ⬜ Pending — Stage 1 dependency satisfied, not yet started
+Status: ✅ Done — all tasks complete, acceptance criteria verified (local + screenshot
+check at desktop and mobile viewports, plus real click/Escape interaction on the modal)
 
-Tasks: color tokens, typography scale, spacing tokens, shadows/borders, buttons, cards,
-modals, progress bars, badges, player chips, animation utilities, responsive layout
-primitives.
+| Task                         | Status | Notes                                                           |
+| ---------------------------- | ------ | --------------------------------------------------------------- |
+| Color tokens                 | ✅     | Extended `globals.css` (dark variant shades, surface color)     |
+| Typography scale             | ✅     | Tailwind defaults + `font-display`/`font-sans` from Stage 1     |
+| Spacing tokens               | ✅     | Tailwind's default spacing scale, documented as the standard    |
+| Shadows and borders          | ✅     | `shadow-chunky*` / `radius-chunky*` tokens (offset drop shadow) |
+| Buttons                      | ✅     | `Button` — 5 variants, 3 sizes, press-squash, keyboard-tested   |
+| Cards                        | ✅     | `Card`                                                          |
+| Modals                       | ✅     | `Modal` — focus trap, Escape, backdrop click, focus restore     |
+| Progress bars                | ✅     | `ProgressBar` — ARIA `progressbar`, animated fill               |
+| Badges                       | ✅     | `Badge` — always text-labeled, never color-only                 |
+| Player chips                 | ✅     | `PlayerChip` — active/eliminated states via text, not color     |
+| Animation utilities          | ✅     | `AnimatedNumber`, `src/lib/motion.ts`, reduced-motion aware     |
+| Responsive layout primitives | ✅     | `Container`, `Stack`                                            |
 
-**Acceptance criteria:** component showcase page exists; components work on mobile and
-desktop; keyboard navigation works; no copied third-party game assets.
+**Acceptance criteria:** component showcase page exists (`/showcase`); components work on
+mobile and desktop (verified via Playwright screenshots at 1280px and 390px); keyboard
+navigation works (Button tab/Enter tested, Modal focus trap tested); no copied
+third-party game assets (all original CSS/SVG-based, no external art).
 
-**Testing requirements:** component unit tests (RTL) for interactive primitives (buttons,
-modals); visual check across breakpoints.
+**Testing requirements:** 24 RTL/Vitest unit tests across 7 component files, covering
+click/keyboard/disabled behavior, ARIA semantics, focus trap and restoration, and
+color-independent state communication. Visual check performed via headless Chromium
+screenshots at desktop and mobile widths; caught and fixed a real flex-stretch layout bug
+in the showcase page before merging.
 
 ---
 
 ## Stage 3 — Game engine
 
-Status: ⬜ Pending — depends on Stage 1
+Status: ⬜ Pending — dependency satisfied, not yet started
 
 Tasks: game types, target generator, match initializer, turn rotation, move processor,
 life/elimination logic, winner detection, round reset, seeded randomness, unit tests.
