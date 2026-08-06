@@ -192,6 +192,11 @@ export function MatchSettingsForm({ onBack, onStartMatch }: MatchSettingsFormPro
             htmlFor="adaptiveTargetRange"
             registration={register("adaptiveTargetRange")}
           />
+          <ToggleField
+            label="Power-ups"
+            htmlFor="powerUpsEnabled"
+            registration={register("powerUpsEnabled")}
+          />
 
           <Field label="Default bot personality" htmlFor="botDifficulty">
             <select id="botDifficulty" {...register("botDifficulty")} className={selectClass}>

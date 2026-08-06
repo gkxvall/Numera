@@ -18,6 +18,7 @@ describe("MatchSettingsForm", () => {
     expect(screen.getByLabelText("Maximum move (+1 to +N)")).toHaveValue(3);
     expect(screen.getByLabelText("Turn timer")).toBeChecked();
     expect(screen.getByLabelText("Timer seconds")).toHaveValue(10);
+    expect(screen.getByLabelText("Power-ups")).toBeChecked();
   });
 
   it("applying the Sudden Death preset updates the visible form fields", async () => {

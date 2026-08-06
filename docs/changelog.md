@@ -90,6 +90,23 @@ through an elimination screen, to completion, and through a rematch. Verified vi
 via real-browser screenshots — shake, knockback, confetti, and the full winner screen all
 render correctly with zero console errors.
 
+### Stage 7 — Power-ups: complete
+
+Implemented all 11 power-ups from plan §8.1 (Shield, Peek, Reverse, Freeze, Boost, Skip,
+Swap, Counter Pushback, Scramble, Double Trouble, Lucky Dice) in a new
+`src/game-engine/power-up-resolver.ts`, plus shared engine primitives
+(`pendingEffects`, `turnOrdinal`, `advanceTurn`, `getEffectiveMaxMove`,
+`consumePendingEffect`) extracted into `rules.ts` so `engine.ts` and the resolver could
+share them without a circular import. Added `PowerUpInventory` (activation buttons +
+an explanation modal, with target-player/amount pickers for Swap/Pushback), wired into
+`GameplayScreen` with live Peek-range feedback and shield-blocked round messaging in
+`EliminationScreen`. `MatchLog` now interleaves power-up usage with moves. Exposed the
+`powerUpsEnabled` toggle in `MatchSettingsForm`, held back since Stage 4 pending this
+work. 25+ new tests, including a combination test that activates all 11 power-ups within
+one running match and asserts turn order/state integrity throughout, plus permanent e2e
+coverage. Verified visually in a real browser — inventory, modal, and match log all
+render and update correctly with zero console errors.
+
 ---
 
 _No production releases yet._

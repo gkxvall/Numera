@@ -434,8 +434,14 @@ describe("ABANDON_MATCH", () => {
 });
 
 describe("USE_POWER_UP", () => {
-  it("is not implemented yet and fails loudly rather than silently corrupting state", () => {
-    const match = createMatch("m1", makeTestSettings(), makeTestPlayers(2));
+  // Full power-up behavior (all 11 types, balance rules) is covered in
+  // power-up-resolver.test.ts. This just checks the engine-level gate.
+  it("is rejected when power-ups are disabled for the match", () => {
+    const match = createMatch(
+      "m1",
+      makeTestSettings({ powerUpsEnabled: false }),
+      makeTestPlayers(2),
+    );
     const random = createSeededRandomSource(1);
     const { state } = applyCommand(match, { type: "START_MATCH" }, random);
     const activeId = state.playerOrder[state.activePlayerIndex]!;
@@ -446,7 +452,7 @@ describe("USE_POWER_UP", () => {
         { type: "USE_POWER_UP", playerId: activeId, powerUpId: "shield" },
         random,
       ),
-    ).toThrow(/Stage 7/);
+    ).toThrow(/disabled/);
   });
 });
 

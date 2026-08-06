@@ -8,7 +8,7 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 7 — Power-ups
+## ➤ CURRENT STAGE: Stage 8 — Additional game modes
 
 ## Stage 1 — Repository and foundation
 
@@ -267,23 +267,58 @@ the same stale-closure lesson from Stage 5's known-issues entry applied proactiv
 
 ## Stage 7 — Power-ups
 
-Status: ⬜ Pending — dependencies satisfied (Stages 3, 5 done), not yet started
+Status: ✅ Done — all tasks complete, acceptance criteria verified
 
-Tasks: power-up models, inventory UI, initial power-ups (Shield, Peek, Reverse, Freeze,
-Boost, Skip, Swap, Counter Pushback, Scramble, Double Trouble, Lucky Dice), animations,
-balance restrictions, tests, match logs.
+| Task                 | Status | Notes                                                                                                                             |
+| -------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Power-up models      | ✅     | `PowerUpId`, `PendingEffect`, `PowerUpUsageRecord` in `types.ts`                                                                  |
+| Inventory UI         | ✅     | `PowerUpInventory` — buttons + confirmation modal with description                                                                |
+| All 11 power-ups     | ✅     | Shield, Peek, Reverse, Freeze, Boost, Skip, Swap, Counter Pushback, Scramble, Double Trouble, Lucky Dice — `power-up-resolver.ts` |
+| Animations           | ✅     | Reuses the existing chunky Button/Modal system; power-up feedback via Badge                                                       |
+| Balance restrictions | ✅     | Powered-up-once-per-turn (`turnOrdinal`), finite inventory, `powerUpsEnabled` gate, active-player-only                            |
+| Tests                | ✅     | 21 engine tests + 6 UI tests + 3 MatchLog tests + e2e                                                                             |
+| Match logs           | ✅     | `MatchLog` now interleaves `powerUpHistory` with moves chronologically                                                            |
 
-**Acceptance criteria:** every power-up has working behavior; no power-up can corrupt turn
-order or match state.
+**Acceptance criteria:** every power-up has working, tested behavior (all 11 covered
+individually in `power-up-resolver.test.ts`, including Shield blocking a hit without a
+life loss, Freeze/Boost changing the effective move cap for exactly one turn, Double
+Trouble granting a real second turn, and Lucky Dice performing an actual move). No
+power-up can corrupt turn order or match state — a dedicated test activates all 11
+power-ups in sequence within one running match and asserts `playerOrder` stays a valid
+permutation and `activePlayerIndex` stays valid after every single use. Verified visually
+in a real browser: inventory renders, the explanation modal shows before activation,
+Boost genuinely added a `+4` move option, and a full match completed cleanly with
+power-ups enabled (the plan §6.2 default) and zero console errors.
 
-**Testing requirements:** unit tests per power-up resolver; combination/edge-case tests
-(e.g., repeated Reverse, Scramble with 2 players, pushback at zero).
+**Testing requirements:** unit tests per power-up (all 11), balance-rule tests
+(one-per-turn, inventory exhaustion, disabled-mode rejection, active-player-only), the
+turn-order-integrity combination test above, `PowerUpInventory` component tests
+(including the Swap target-picker and Pushback amount-picker requiring a selection before
+confirming), and a permanent Playwright e2e test.
+
+**Design notes:**
+
+- **Shared helpers extracted to `rules.ts`** (`activePlayerId`, `requirePlayer`,
+  `replacePlayer`, `advanceTurn`, `getEffectiveMaxMove`, `consumePendingEffect`) so
+  `engine.ts` and the new `power-up-resolver.ts` could both use them without a circular
+  import.
+- **Lucky Dice is orchestrated by `engine.ts`, not `power-up-resolver.ts`**, since it both
+  consumes a power-up and performs a real move (needs `submitMove`); every other
+  power-up is resolved entirely within `power-up-resolver.ts`. Keeps the module graph
+  acyclic.
+- **`pendingEffects` and `turnOrdinal`** (both anticipated by plan §18.3's "pending
+  effects" and the "one power-up per turn" balance rule) are the mechanism behind
+  Shield/Freeze/Boost/Double Trouble — a small, shared, well-tested primitive rather than
+  bespoke state per power-up.
+- **The `powerUpsEnabled` toggle**, held back in Stage 4 with a note explaining it had no
+  effect yet, is now exposed in `MatchSettingsForm` — the reasoning behind that Stage 4
+  omission (documented at the time) directly informed this stage's scope check.
 
 ---
 
 ## Stage 8 — Additional game modes
 
-Status: ⬜ Pending — depends on Stages 3, 5, 7
+Status: ⬜ Pending — dependencies satisfied (Stages 3, 5, 7 done), not yet started
 
 Tasks: Multi-Life, Score Rush, Reverse Countdown, Sudden Death, Team Battle, Chaos Mode.
 

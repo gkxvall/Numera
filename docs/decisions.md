@@ -178,3 +178,34 @@ Stage 6 elimination/victory screens) must remember to also check `isAnimating`, 
 `status` alone. `TurnTimer` and the Pause button are additionally gated on
 `status === "in_progress"` specifically, since they must stop operating the instant a
 round ends even while the counter is still visually finishing its animation.
+
+---
+
+## ADR-0008 — pendingEffects + turnOrdinal as the shared power-up primitive
+
+**Date:** 2026-08-06
+**Status:** Accepted
+
+**Context:** Several power-ups (Shield, Freeze, Boost, Double Trouble) don't take effect
+immediately — they change what happens on a _future_ turn (the activator's own next
+move, or a specific other player's next turn). Without a shared mechanism, each would
+need its own bespoke transient state on `ActiveMatch`, and "one power-up per turn" (plan
+§8.2) would need its own separate tracking.
+
+**Decision:** Add two small primitives to the engine: `pendingEffects: PendingEffect[]`
+(each `{ type, targetPlayerId }`, consumed the next time that player's move is
+processed) and `turnOrdinal: number` (incremented on every turn transition, including
+repeats granted by Double Trouble). `power-up-resolver.ts` and `engine.ts` share
+`advanceTurn`, `getEffectiveMaxMove`, and `consumePendingEffect` (all in `rules.ts`) to
+apply and consume these consistently everywhere a turn can end (a normal move, Skip, a
+timeout).
+
+**Why:** `pendingEffects` was already implied by plan §18.3 ("Active match store
+contains... Pending effects"). A single shared primitive, applied identically regardless
+of _how_ a turn ends, is what makes the "activate all 11 power-ups in one match, assert
+nothing corrupts" test (`power-up-resolver.test.ts`) possible — bespoke per-power-up
+state would each need separate corruption checks.
+
+**Consequences:** Any future power-up or special event (plan §9, still unscheduled — see
+`docs/known-issues.md`) that needs to affect a future turn should reuse this mechanism
+rather than adding new transient fields to `ActiveMatch`.

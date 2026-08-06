@@ -46,10 +46,46 @@ export interface MatchSettings {
   botDifficulty: BotDifficulty;
 }
 
-/** Minimal shape for now; power-up resolution logic arrives in Stage 7. */
+/** The eleven power-ups from plan §8.1. */
+export const POWER_UP_IDS = [
+  "shield",
+  "peek",
+  "reverse",
+  "freeze",
+  "boost",
+  "skip",
+  "swap",
+  "counterPushback",
+  "scramble",
+  "doubleTrouble",
+  "luckyDice",
+] as const;
+
+export type PowerUpId = (typeof POWER_UP_IDS)[number];
+
 export interface PlayerPowerUp {
-  powerUpId: string;
+  powerUpId: PowerUpId;
   quantity: number;
+}
+
+/** A one-shot effect queued to apply the next time its target player acts. */
+export type PendingEffectType = "shield" | "freeze" | "boost" | "doubleTurn";
+
+export interface PendingEffect {
+  type: PendingEffectType;
+  targetPlayerId: string;
+}
+
+export interface PowerUpUsageRecord {
+  id: string;
+  powerUpId: PowerUpId;
+  playerId: string;
+  round: number;
+  /** The turnOrdinal this was used during — enforces "one power-up per turn" (plan §8.2). */
+  turnOrdinal: number;
+  targetPlayerId?: string;
+  amount?: number;
+  timestamp: string;
 }
 
 export interface PlayerMatchStats {
@@ -114,6 +150,8 @@ export interface RoundRecord {
   loserPlayerId: string;
   eliminatedPlayerId: string | null;
   livesRemainingAfterLoss: number;
+  /** True when a Shield power-up negated what would otherwise have been a life loss. */
+  blockedByShield: boolean;
   startedAt: string;
   endedAt: string;
 }
@@ -125,11 +163,15 @@ export interface ActiveMatch {
   players: Player[];
   playerOrder: string[];
   activePlayerIndex: number;
+  /** Monotonically increasing count of turns taken, including repeats from Double Trouble. */
+  turnOrdinal: number;
   currentRound: number;
   counter: number;
   target: number;
   moveHistory: MoveRecord[];
   roundHistory: RoundRecord[];
+  powerUpHistory: PowerUpUsageRecord[];
+  pendingEffects: PendingEffect[];
   startedAt: string;
   roundStartedAt: string;
   completedAt?: string;
@@ -139,7 +181,13 @@ export interface ActiveMatch {
 export type GameCommand =
   | { type: "START_MATCH" }
   | { type: "SUBMIT_MOVE"; playerId: string; amount: number }
-  | { type: "USE_POWER_UP"; playerId: string; powerUpId: string }
+  | {
+      type: "USE_POWER_UP";
+      playerId: string;
+      powerUpId: PowerUpId;
+      targetPlayerId?: string;
+      amount?: number;
+    }
   | { type: "TURN_TIMEOUT"; playerId: string }
   | { type: "CONTINUE_AFTER_LOSS" }
   | { type: "PAUSE_MATCH" }
@@ -155,7 +203,9 @@ export type GameEvent =
   | { type: "LIFE_LOST"; playerId: string }
   | { type: "PLAYER_ELIMINATED"; playerId: string; placement: number }
   | { type: "ROUND_ENDED"; round: number }
-  | { type: "POWER_UP_USED"; playerId: string; powerUpId: string }
+  | { type: "POWER_UP_USED"; playerId: string; powerUpId: PowerUpId; targetPlayerId?: string }
+  | { type: "SHIELD_BLOCKED_HIT"; playerId: string }
+  | { type: "PEEK_REVEALED"; playerId: string; rangeMin: number; rangeMax: number }
   | { type: "TURN_CHANGED"; playerId: string }
   | { type: "MATCH_PAUSED" }
   | { type: "MATCH_RESUMED" }

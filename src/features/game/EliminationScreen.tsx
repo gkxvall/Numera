@@ -17,11 +17,20 @@ export function EliminationScreen({ match, onContinue }: EliminationScreenProps)
   const lastRound = match.roundHistory[match.roundHistory.length - 1];
   const loser = match.players.find((player) => player.id === lastRound?.loserPlayerId);
   const wasEliminated = Boolean(lastRound?.eliminatedPlayerId);
+  const wasBlockedByShield = Boolean(lastRound?.blockedByShield);
+
+  const headline = wasBlockedByShield
+    ? "blocked the hit with a Shield!"
+    : wasEliminated
+      ? "was eliminated!"
+      : "lost a life.";
 
   return (
     <ShakeOnMount>
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <Badge tone="red">Round {match.currentRound} over</Badge>
+        <Badge tone={wasBlockedByShield ? "blue" : "red"}>
+          Round {match.currentRound} {wasBlockedByShield ? "" : "over"}
+        </Badge>
 
         {loser && (
           <motion.div
@@ -40,7 +49,7 @@ export function EliminationScreen({ match, onContinue }: EliminationScreenProps)
         )}
 
         <h1 className="font-display text-foreground text-2xl">
-          {loser?.name ?? "A player"} {wasEliminated ? "was eliminated!" : "lost a life."}
+          {loser?.name ?? "A player"} {headline}
         </h1>
 
         {lastRound && (
@@ -49,7 +58,7 @@ export function EliminationScreen({ match, onContinue }: EliminationScreenProps)
           </p>
         )}
 
-        {!wasEliminated && loser && (
+        {!wasEliminated && !wasBlockedByShield && loser && (
           <p className="text-foreground/60 text-sm">
             {loser.lives} {loser.lives === 1 ? "life" : "lives"} remaining
           </p>

@@ -14,14 +14,26 @@ import type { RandomSource } from "./random";
 import { generateTarget, resolveTargetRange } from "./target-generator";
 import { validateMoveAmount } from "./move-validator";
 import {
+  activePlayerId,
+  advanceTurn,
   applyMoveToCounter,
   calculateDangerLevel,
+  consumePendingEffect,
   findNextActivePlayerIndex,
   generateDangerUncertainty,
   getActivePlayers,
+  getEffectiveMaxMove,
   placementForElimination,
+  replacePlayer,
+  requirePlayer,
   shuffle,
 } from "./rules";
+import {
+  assertCanActivate,
+  consumeInventoryAndRecord,
+  grantStartingPowerUps,
+  resolveNonMovePowerUp,
+} from "./power-up-resolver";
 
 export interface CommandResult {
   state: ActiveMatch;
@@ -75,11 +87,14 @@ export function createMatch(id: string, settings: MatchSettings, players: Player
     })),
     playerOrder: players.map((player) => player.id),
     activePlayerIndex: 0,
+    turnOrdinal: 0,
     currentRound: 0,
     counter: 0,
     target: 0,
     moveHistory: [],
     roundHistory: [],
+    powerUpHistory: [],
+    pendingEffects: [],
     startedAt: new Date().toISOString(),
     roundStartedAt: new Date().toISOString(),
   };
@@ -106,7 +121,7 @@ export function applyCommand(
     case "ABANDON_MATCH":
       return abandonMatch(state);
     case "USE_POWER_UP":
-      throw new GameRuleViolation("Power-ups are not implemented yet (arrives in Stage 7).");
+      return handleUsePowerUp(state, command, random);
     default: {
       const exhaustiveCheck: never = command;
       throw new GameRuleViolation(`Unknown command: ${JSON.stringify(exhaustiveCheck)}`);
@@ -114,20 +129,32 @@ export function applyCommand(
   }
 }
 
-function activePlayerId(state: ActiveMatch): string {
-  const id = state.playerOrder[state.activePlayerIndex];
-  if (!id) throw new GameRuleViolation("No active player is set for this turn.");
-  return id;
-}
+/**
+ * Lucky Dice both consumes a power-up and performs a move, so it needs submitMove —
+ * kept here (rather than in power-up-resolver.ts) to avoid a circular import. Every
+ * other power-up is handled by resolveNonMovePowerUp.
+ */
+function handleUsePowerUp(
+  state: ActiveMatch,
+  command: Extract<GameCommand, { type: "USE_POWER_UP" }>,
+  random: RandomSource,
+): CommandResult {
+  if (command.powerUpId !== "luckyDice") {
+    return resolveNonMovePowerUp(state, command, random);
+  }
 
-function requirePlayer(state: ActiveMatch, playerId: string): Player {
-  const player = state.players.find((candidate) => candidate.id === playerId);
-  if (!player) throw new GameRuleViolation(`Unknown player: ${playerId}`);
-  return player;
-}
+  const player = assertCanActivate(state, command.playerId, command.powerUpId);
+  const { state: stateAfterConsume } = consumeInventoryAndRecord(state, player, "luckyDice");
+  const amount = random.nextInt(1, state.settings.maxMove);
+  const moveResult = submitMove(stateAfterConsume, player.id, amount, random);
 
-function replacePlayer(players: readonly Player[], updated: Player): Player[] {
-  return players.map((player) => (player.id === updated.id ? updated : player));
+  return {
+    state: moveResult.state,
+    events: [
+      { type: "POWER_UP_USED", playerId: player.id, powerUpId: "luckyDice" },
+      ...moveResult.events,
+    ],
+  };
 }
 
 function startMatch(state: ActiveMatch, random: RandomSource): CommandResult {
@@ -142,12 +169,17 @@ function startMatch(state: ActiveMatch, random: RandomSource): CommandResult {
   const range = resolveTargetRange(state.settings, getActivePlayers(state.players).length);
   const target = generateTarget(range, 0, [], random);
   const startedAt = new Date().toISOString();
+  const players = state.settings.powerUpsEnabled
+    ? grantStartingPowerUps(state.players, random)
+    : state.players;
 
   const nextState: ActiveMatch = {
     ...state,
     status: "in_progress",
     playerOrder,
+    players,
     activePlayerIndex: 0,
+    turnOrdinal: 1,
     currentRound: 1,
     counter: 0,
     target,
@@ -162,32 +194,47 @@ function startMatch(state: ActiveMatch, random: RandomSource): CommandResult {
 }
 
 /**
- * Deducts a life from `playerId`, eliminates them if that was their last life, checks
- * for a match winner, and records the round. Does not touch the counter/target itself —
- * callers (a target hit, or a forced timeout life loss) are responsible for that.
+ * Deducts a life from `playerId` (unless `blockedByShield`), eliminates them if that
+ * was their last life, checks for a match winner, and records the round. Does not touch
+ * the counter/target itself — callers (a target hit, or a forced timeout life loss) are
+ * responsible for that.
  */
-function resolveLifeLoss(state: ActiveMatch, playerId: string): CommandResult {
+function resolveLifeLoss(
+  state: ActiveMatch,
+  playerId: string,
+  blockedByShield = false,
+): CommandResult {
   const events: GameEvent[] = [];
   const activeCountBefore = getActivePlayers(state.players).length;
 
   const loser = requirePlayer(state, playerId);
-  const updatedLoser: Player = {
-    ...loser,
-    lives: loser.lives - 1,
-    stats: { ...loser.stats, livesLost: loser.stats.livesLost + 1 },
-  };
-  events.push({ type: "LIFE_LOST", playerId });
-
+  let updatedLoser: Player = loser;
   let eliminatedPlayerId: string | null = null;
-  if (updatedLoser.lives <= 0) {
-    updatedLoser.isEliminated = true;
-    updatedLoser.placement = placementForElimination(activeCountBefore);
-    eliminatedPlayerId = playerId;
-    events.push({
-      type: "PLAYER_ELIMINATED",
-      playerId,
-      placement: updatedLoser.placement,
-    });
+
+  if (blockedByShield) {
+    updatedLoser = {
+      ...loser,
+      stats: { ...loser.stats, shieldsTriggered: loser.stats.shieldsTriggered + 1 },
+    };
+    events.push({ type: "SHIELD_BLOCKED_HIT", playerId });
+  } else {
+    updatedLoser = {
+      ...loser,
+      lives: loser.lives - 1,
+      stats: { ...loser.stats, livesLost: loser.stats.livesLost + 1 },
+    };
+    events.push({ type: "LIFE_LOST", playerId });
+
+    if (updatedLoser.lives <= 0) {
+      updatedLoser.isEliminated = true;
+      updatedLoser.placement = placementForElimination(activeCountBefore);
+      eliminatedPlayerId = playerId;
+      events.push({
+        type: "PLAYER_ELIMINATED",
+        playerId,
+        placement: updatedLoser.placement,
+      });
+    }
   }
 
   let players = replacePlayer(state.players, updatedLoser);
@@ -199,6 +246,7 @@ function resolveLifeLoss(state: ActiveMatch, playerId: string): CommandResult {
     loserPlayerId: playerId,
     eliminatedPlayerId,
     livesRemainingAfterLoss: updatedLoser.lives,
+    blockedByShield,
     startedAt: state.roundStartedAt,
     endedAt: now,
   };
@@ -246,7 +294,8 @@ function submitMove(
     throw new GameRuleViolation("It is not this player's turn.");
   }
 
-  const validation = validateMoveAmount(amount, state.settings.maxMove);
+  const { maxMove: effectiveMaxMove, appliedEffect } = getEffectiveMaxMove(state, playerId);
+  const validation = validateMoveAmount(amount, effectiveMaxMove);
   if (!validation.valid) {
     throw new GameRuleViolation(validation.error ?? "Invalid move amount.");
   }
@@ -280,11 +329,17 @@ function submitMove(
     },
   };
 
+  // A Freeze/Boost effect applying to this move is used up regardless of the outcome.
+  const pendingEffects = appliedEffect
+    ? consumePendingEffect(state.pendingEffects, appliedEffect, playerId)
+    : state.pendingEffects;
+
   const stateAfterMove: ActiveMatch = {
     ...state,
     counter: counterAfter,
     players: replacePlayer(state.players, updatedPlayer),
     moveHistory: [...state.moveHistory, moveRecord],
+    pendingEffects,
   };
 
   const events: GameEvent[] = [{ type: "COUNTER_CHANGED", value: counterAfter }];
@@ -296,17 +351,32 @@ function submitMove(
   }
 
   if (!reachedTarget) {
-    const nextIndex = findNextActivePlayerIndex(
-      stateAfterMove.playerOrder,
-      stateAfterMove.players,
-      stateAfterMove.activePlayerIndex,
-    );
-    const nextPlayerId = stateAfterMove.playerOrder[nextIndex]!;
+    const next = advanceTurn(stateAfterMove, playerId);
+    const nextPlayerId = stateAfterMove.playerOrder[next.activePlayerIndex]!;
     events.push({ type: "TURN_CHANGED", playerId: nextPlayerId });
     return {
-      state: { ...stateAfterMove, activePlayerIndex: nextIndex },
+      state: {
+        ...stateAfterMove,
+        activePlayerIndex: next.activePlayerIndex,
+        pendingEffects: next.pendingEffects,
+        turnOrdinal: stateAfterMove.turnOrdinal + 1,
+      },
       events,
     };
+  }
+
+  const hasShield = stateAfterMove.pendingEffects.some(
+    (effect) => effect.type === "shield" && effect.targetPlayerId === playerId,
+  );
+
+  if (hasShield) {
+    const shieldedState: ActiveMatch = {
+      ...stateAfterMove,
+      pendingEffects: consumePendingEffect(stateAfterMove.pendingEffects, "shield", playerId),
+    };
+    events.push({ type: "TARGET_HIT", playerId });
+    const shieldResult = resolveLifeLoss(shieldedState, playerId, true);
+    return { state: shieldResult.state, events: [...events, ...shieldResult.events] };
   }
 
   events.push({ type: "TARGET_HIT", playerId });
@@ -338,6 +408,7 @@ function continueAfterLoss(state: ActiveMatch, random: RandomSource): CommandRes
     target,
     currentRound: nextRound,
     activePlayerIndex: nextIndex,
+    turnOrdinal: state.turnOrdinal + 1,
     roundStartedAt: now,
   };
 
@@ -366,14 +437,15 @@ function handleTimeout(state: ActiveMatch, playerId: string, random: RandomSourc
       return submitMove(state, playerId, amount, random);
     }
     case "skipTurn": {
-      const nextIndex = findNextActivePlayerIndex(
-        state.playerOrder,
-        state.players,
-        state.activePlayerIndex,
-      );
+      const next = advanceTurn(state, playerId);
       return {
-        state: { ...state, activePlayerIndex: nextIndex },
-        events: [{ type: "TURN_CHANGED", playerId: state.playerOrder[nextIndex]! }],
+        state: {
+          ...state,
+          activePlayerIndex: next.activePlayerIndex,
+          pendingEffects: next.pendingEffects,
+          turnOrdinal: state.turnOrdinal + 1,
+        },
+        events: [{ type: "TURN_CHANGED", playerId: state.playerOrder[next.activePlayerIndex]! }],
       };
     }
     case "loseLife":
@@ -381,18 +453,16 @@ function handleTimeout(state: ActiveMatch, playerId: string, random: RandomSourc
     case "losePoint": {
       const player = requirePlayer(state, playerId);
       const updatedPlayer: Player = { ...player, score: player.score - 1 };
-      const nextIndex = findNextActivePlayerIndex(
-        state.playerOrder,
-        state.players,
-        state.activePlayerIndex,
-      );
+      const next = advanceTurn(state, playerId);
       return {
         state: {
           ...state,
           players: replacePlayer(state.players, updatedPlayer),
-          activePlayerIndex: nextIndex,
+          activePlayerIndex: next.activePlayerIndex,
+          pendingEffects: next.pendingEffects,
+          turnOrdinal: state.turnOrdinal + 1,
         },
-        events: [{ type: "TURN_CHANGED", playerId: state.playerOrder[nextIndex]! }],
+        events: [{ type: "TURN_CHANGED", playerId: state.playerOrder[next.activePlayerIndex]! }],
       };
     }
   }

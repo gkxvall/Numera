@@ -5,6 +5,7 @@ import { EliminationScreen } from "./EliminationScreen";
 import { applyCommand, createMatch } from "@/game-engine/engine";
 import { createSeededRandomSource } from "@/game-engine/random";
 import { makeTestPlayers, makeTestSettings } from "@/game-engine/test-helpers";
+import type { ActiveMatch } from "@/game-engine/types";
 
 function roundEndedMatch(startingLives: number) {
   let match = createMatch(
@@ -16,6 +17,30 @@ function roundEndedMatch(startingLives: number) {
   match = applyCommand(match, { type: "START_MATCH" }, random).state;
   const loserId = match.playerOrder[match.activePlayerIndex]!;
   match = applyCommand(match, { type: "SUBMIT_MOVE", playerId: loserId, amount: 2 }, random).state;
+  return match;
+}
+
+function shieldBlockedMatch() {
+  let match = createMatch(
+    "m1",
+    makeTestSettings({ powerUpsEnabled: true, targetRange: { min: 2, max: 2 } }),
+    makeTestPlayers(2),
+  );
+  const random = createSeededRandomSource(1);
+  match = applyCommand(match, { type: "START_MATCH" }, random).state;
+  const activeId = match.playerOrder[match.activePlayerIndex]!;
+  match = {
+    ...match,
+    players: match.players.map((p) =>
+      p.id === activeId ? { ...p, powerUps: [{ powerUpId: "shield", quantity: 1 }] } : p,
+    ),
+  } as ActiveMatch;
+  match = applyCommand(
+    match,
+    { type: "USE_POWER_UP", playerId: activeId, powerUpId: "shield" },
+    random,
+  ).state;
+  match = applyCommand(match, { type: "SUBMIT_MOVE", playerId: activeId, amount: 2 }, random).state;
   return match;
 }
 
@@ -35,6 +60,15 @@ describe("EliminationScreen", () => {
 
     expect(screen.getByText(/was eliminated!/)).toBeInTheDocument();
     expect(screen.queryByText(/lives? remaining/)).not.toBeInTheDocument();
+  });
+
+  it("shows the shield-blocked message and does not describe it as a loss", () => {
+    const match = shieldBlockedMatch();
+    render(<EliminationScreen match={match} onContinue={vi.fn()} />);
+
+    expect(screen.getByText(/blocked the hit with a Shield!/)).toBeInTheDocument();
+    expect(screen.queryByText(/lost a life\./)).not.toBeInTheDocument();
+    expect(screen.queryByText(/was eliminated!/)).not.toBeInTheDocument();
   });
 
   it("calls onContinue when Continue is clicked", async () => {

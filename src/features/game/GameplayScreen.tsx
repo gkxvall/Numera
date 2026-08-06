@@ -8,6 +8,7 @@ import { Badge } from "@/components/Badge";
 import { startNewMatch, useActiveMatchStore } from "@/stores/activeMatchStore";
 import { buildBotDecisionContext, chooseBotMove } from "@/game-engine/bot-strategy";
 import { createSecureRandomSource } from "@/game-engine/random";
+import { getEffectiveMaxMove } from "@/game-engine/rules";
 import { Counter } from "./Counter";
 import { MoveButtons } from "./MoveButtons";
 import { PassThePhoneScreen } from "./PassThePhoneScreen";
@@ -16,6 +17,7 @@ import { TurnTimer } from "./TurnTimer";
 import { MatchLog } from "./MatchLog";
 import { EliminationScreen } from "./EliminationScreen";
 import { WinnerScreen } from "./WinnerScreen";
+import { PowerUpInventory, type PowerUpActivation } from "./PowerUpInventory";
 import { useSteppedCounter } from "./useSteppedCounter";
 import { buildMatchFromCurrentSetup } from "./createMatchFromSetup";
 
@@ -30,6 +32,7 @@ export function GameplayScreen({ onReturnHome, onChangeSettings }: GameplayScree
   const match = useActiveMatchStore((state) => state.match);
   const dangerLevel = useActiveMatchStore((state) => state.dangerLevel);
   const lastError = useActiveMatchStore((state) => state.lastError);
+  const lastEvents = useActiveMatchStore((state) => state.lastEvents);
   const clearError = useActiveMatchStore((state) => state.clearError);
   const dispatch = useActiveMatchStore((state) => state.dispatch);
   const abandonAndClear = useActiveMatchStore((state) => state.abandonAndClear);
@@ -44,13 +47,26 @@ export function GameplayScreen({ onReturnHome, onChangeSettings }: GameplayScree
   const turnKey = match ? `${match.id}:${match.currentRound}:${match.activePlayerIndex}` : "none";
 
   const [phoneReady, setPhoneReady] = useState(false);
+  const [peekMessage, setPeekMessage] = useState<string | null>(null);
   const turnKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (turnKeyRef.current !== turnKey) {
       turnKeyRef.current = turnKey;
       setPhoneReady(activePlayer?.isBot ?? false);
+      setPeekMessage(null);
     }
   }, [turnKey, activePlayer?.isBot]);
+
+  useEffect(() => {
+    // Subscribing to a new batch of events from the store, not deriving from current
+    // props/state — lastEvents is a transient queue, so this can't be computed at render
+    // time the way the lint rule's default heuristic expects.
+    const peekEvent = lastEvents.find((event) => event.type === "PEEK_REVEALED");
+    if (peekEvent?.type === "PEEK_REVEALED") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPeekMessage(`The number is between ${peekEvent.rangeMin} and ${peekEvent.rangeMax}.`);
+    }
+  }, [lastEvents]);
 
   const botMovedRef = useRef<string | null>(null);
   useEffect(() => {
@@ -83,6 +99,10 @@ export function GameplayScreen({ onReturnHome, onChangeSettings }: GameplayScree
     if (!activeId) return;
     useActiveMatchStore.getState().dispatch({ type: "TURN_TIMEOUT", playerId: activeId });
   }, []);
+
+  function handleActivatePowerUp(playerId: string, activation: PowerUpActivation) {
+    dispatch({ type: "USE_POWER_UP", playerId, ...activation });
+  }
 
   function handlePlayAgain() {
     const newMatch = buildMatchFromCurrentSetup();
@@ -213,13 +233,24 @@ export function GameplayScreen({ onReturnHome, onChangeSettings }: GameplayScree
           {activePlayer.name}
           {activePlayer.isBot ? " is thinking…" : ", choose your move"}
         </p>
+        {peekMessage && <Badge tone="purple">{peekMessage}</Badge>}
         {!activePlayer.isBot && (
           <MoveButtons
-            maxMove={match.settings.maxMove}
+            maxMove={getEffectiveMaxMove(match, activePlayer.id).maxMove}
             disabled={isAnimating}
             onSelect={(amount) =>
               dispatch({ type: "SUBMIT_MOVE", playerId: activePlayer.id, amount })
             }
+          />
+        )}
+        {!activePlayer.isBot && match.settings.powerUpsEnabled && (
+          <PowerUpInventory
+            player={activePlayer}
+            otherActivePlayers={match.players.filter(
+              (player) => player.id !== activePlayer.id && !player.isEliminated,
+            )}
+            disabled={isAnimating}
+            onActivate={(activation) => handleActivatePowerUp(activePlayer.id, activation)}
           />
         )}
       </div>
