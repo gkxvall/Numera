@@ -5,7 +5,7 @@ import { useReducedMotion } from "framer-motion";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
-import { useActiveMatchStore } from "@/stores/activeMatchStore";
+import { startNewMatch, useActiveMatchStore } from "@/stores/activeMatchStore";
 import { buildBotDecisionContext, chooseBotMove } from "@/game-engine/bot-strategy";
 import { createSecureRandomSource } from "@/game-engine/random";
 import { Counter } from "./Counter";
@@ -14,15 +14,19 @@ import { PassThePhoneScreen } from "./PassThePhoneScreen";
 import { PlayerOrderStrip } from "./PlayerOrderStrip";
 import { TurnTimer } from "./TurnTimer";
 import { MatchLog } from "./MatchLog";
+import { EliminationScreen } from "./EliminationScreen";
+import { WinnerScreen } from "./WinnerScreen";
 import { useSteppedCounter } from "./useSteppedCounter";
+import { buildMatchFromCurrentSetup } from "./createMatchFromSetup";
 
 const BOT_MOVE_DELAY_MS = 900;
 
 export interface GameplayScreenProps {
-  onExit: () => void;
+  onReturnHome: () => void;
+  onChangeSettings: () => void;
 }
 
-export function GameplayScreen({ onExit }: GameplayScreenProps) {
+export function GameplayScreen({ onReturnHome, onChangeSettings }: GameplayScreenProps) {
   const match = useActiveMatchStore((state) => state.match);
   const dangerLevel = useActiveMatchStore((state) => state.dangerLevel);
   const lastError = useActiveMatchStore((state) => state.lastError);
@@ -80,12 +84,17 @@ export function GameplayScreen({ onExit }: GameplayScreenProps) {
     useActiveMatchStore.getState().dispatch({ type: "TURN_TIMEOUT", playerId: activeId });
   }, []);
 
+  function handlePlayAgain() {
+    const newMatch = buildMatchFromCurrentSetup();
+    startNewMatch(newMatch);
+  }
+
   if (!match) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <h1 className="font-display text-foreground text-2xl">No match in progress</h1>
         <p className="text-foreground/70">Set up players and match settings to start one.</p>
-        <Button onClick={onExit}>Set up a match</Button>
+        <Button onClick={onReturnHome}>Return home</Button>
       </div>
     );
   }
@@ -97,10 +106,10 @@ export function GameplayScreen({ onExit }: GameplayScreenProps) {
         <Button
           onClick={() => {
             abandonAndClear();
-            onExit();
+            onReturnHome();
           }}
         >
-          Back to setup
+          Return home
         </Button>
       </div>
     );
@@ -109,25 +118,19 @@ export function GameplayScreen({ onExit }: GameplayScreenProps) {
   // Wait for the winning move's tick animation to finish before showing the summary —
   // the engine already resolved round_ended/completed in the same dispatch as the move.
   if (match.status === "completed" && !isAnimating) {
-    const winner = match.players.find((player) => player.id === match.winnerId);
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <Badge tone="green">Match complete</Badge>
-        <h1 className="font-display text-foreground text-3xl">
-          {winner?.name ?? "A player"} wins!
-        </h1>
-        <p className="text-foreground/60 text-sm">
-          The full victory celebration (confetti, rankings, rewards) arrives in Stage 6.
-        </p>
-        <Button
-          onClick={() => {
-            abandonAndClear();
-            onExit();
-          }}
-        >
-          Back to setup
-        </Button>
-      </div>
+      <WinnerScreen
+        match={match}
+        onPlayAgain={handlePlayAgain}
+        onChangeSettings={() => {
+          abandonAndClear();
+          onChangeSettings();
+        }}
+        onReturnHome={() => {
+          abandonAndClear();
+          onReturnHome();
+        }}
+      />
     );
   }
 
@@ -141,23 +144,11 @@ export function GameplayScreen({ onExit }: GameplayScreenProps) {
   }
 
   if (match.status === "round_ended" && !isAnimating) {
-    const lastRound = match.roundHistory[match.roundHistory.length - 1];
-    const loser = match.players.find((player) => player.id === lastRound?.loserPlayerId);
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <Badge tone="red">Round {match.currentRound} over</Badge>
-        <h1 className="font-display text-foreground text-2xl">
-          {loser?.name ?? "A player"}{" "}
-          {lastRound?.eliminatedPlayerId ? "was eliminated!" : "lost a life."}
-        </h1>
-        <p className="text-foreground/60 text-sm">
-          The full elimination sequence arrives in Stage 6 — this confirms the round result and lets
-          you continue.
-        </p>
-        <Button size="lg" onClick={() => dispatch({ type: "CONTINUE_AFTER_LOSS" })}>
-          Continue
-        </Button>
-      </div>
+      <EliminationScreen
+        match={match}
+        onContinue={() => dispatch({ type: "CONTINUE_AFTER_LOSS" })}
+      />
     );
   }
 

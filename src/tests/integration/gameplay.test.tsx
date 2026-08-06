@@ -36,7 +36,7 @@ describe("GameplayScreen — full match flow", () => {
     );
     startNewMatch(match);
 
-    render(<GameplayScreen onExit={vi.fn()} />);
+    render(<GameplayScreen onReturnHome={vi.fn()} onChangeSettings={vi.fn()} />);
 
     // Pass-the-phone gate for the first player.
     const firstActiveId = useActiveMatchStore.getState().match!.playerOrder[0]!;
@@ -74,7 +74,7 @@ describe("GameplayScreen — full match flow", () => {
     );
     startNewMatch(match);
 
-    render(<GameplayScreen onExit={vi.fn()} />);
+    render(<GameplayScreen onReturnHome={vi.fn()} onChangeSettings={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Tap when ready" }));
     await user.click(screen.getByRole("button", { name: "+2" }));
 
@@ -99,7 +99,7 @@ describe("GameplayScreen — full match flow", () => {
     );
     startNewMatch(match);
 
-    render(<GameplayScreen onExit={vi.fn()} />);
+    render(<GameplayScreen onReturnHome={vi.fn()} onChangeSettings={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Tap when ready" }));
 
     const moveButton = screen.getByRole("button", { name: "+1" });
@@ -175,7 +175,7 @@ describe("GameplayScreen — bots", () => {
       }));
     }
 
-    render(<GameplayScreen onExit={vi.fn()} />);
+    render(<GameplayScreen onReturnHome={vi.fn()} onChangeSettings={vi.fn()} />);
     await act(async () => {
       await userEvent
         .setup({ delay: null })

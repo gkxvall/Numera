@@ -8,7 +8,7 @@ Legend: ✅ Done · 🔄 In progress · ⛔ Blocked · ⬜ Pending
 
 ---
 
-## ➤ CURRENT STAGE: Stage 6 — Elimination and victory experience
+## ➤ CURRENT STAGE: Stage 7 — Power-ups
 
 ## Stage 1 — Repository and foundation
 
@@ -232,22 +232,42 @@ rankings yet.
 
 ## Stage 6 — Elimination and victory experience
 
-Status: ⬜ Pending — dependency satisfied (Stage 5 done), not yet started
+Status: ✅ Done — all tasks complete, acceptance criteria verified
 
-Tasks: target-hit sequence, life-loss sequence, elimination animation, round summary,
-winner screen, final ranking, rematch flow, return-home flow.
+| Task                  | Status | Notes                                                                   |
+| --------------------- | ------ | ----------------------------------------------------------------------- |
+| Target-hit sequence   | ✅     | `ShakeOnMount` screen shake plays on entering the elimination screen    |
+| Life-loss sequence    | ✅     | Avatar knockback (spring scale/rotate-in) in `EliminationScreen`        |
+| Elimination animation | ✅     | Same screen, grayscale avatar + "was eliminated!" when lives reach 0    |
+| Round summary         | ✅     | `EliminationScreen` — loser, revealed target, remaining lives, Continue |
+| Winner screen         | ✅     | `WinnerScreen` — champion entrance animation, confetti                  |
+| Final ranking         | ✅     | `rankPlayers()` (placement-sorted) rendered in `WinnerScreen`           |
+| Rematch flow          | ✅     | "Play again — same players" via shared `buildMatchFromCurrentSetup()`   |
+| Return-home flow      | ✅     | `onReturnHome`/`onChangeSettings` props wired from `/play`              |
 
-**Acceptance criteria:** match ending feels complete; rewards not required yet but result
-data is accurate.
+**Acceptance criteria:** match ending feels complete — verified via real-browser
+screenshots (screen shake + avatar knockback on the elimination screen; confetti +
+entrance animation + final ranking + match statistics on the winner screen) and a
+permanent Playwright e2e test (`elimination-and-rematch.spec.ts`) that drives a real
+multi-life match through an elimination screen, to completion, and through "Play again"
+to a fresh match. Result data is accurate: `computeMatchStats`/`rankPlayers` are pure
+functions over the real `ActiveMatch`, unit-tested, and rewards (XP/coins/trophies) are
+correctly omitted since Stage 9 doesn't exist yet — the winner screen says so explicitly
+rather than showing fake numbers.
 
-**Testing requirements:** integration tests verifying final ranking/result data matches
-match history.
+**Testing requirements:** unit tests for `computeMatchStats`/`rankPlayers`, component
+tests for `EliminationScreen`/`WinnerScreen`/`ConfettiBurst`/`ShakeOnMount` (including the
+reduced-motion no-op cases), and the e2e test above. 22 new tests.
+
+**Design note:** `buildMatchFromCurrentSetup()` (shared by `/setup/match` and
+`WinnerScreen`'s rematch button) reads `matchSetupStore.getState()` fresh at call time —
+the same stale-closure lesson from Stage 5's known-issues entry applied proactively here.
 
 ---
 
 ## Stage 7 — Power-ups
 
-Status: ⬜ Pending — depends on Stages 3, 5
+Status: ⬜ Pending — dependencies satisfied (Stages 3, 5 done), not yet started
 
 Tasks: power-up models, inventory UI, initial power-ups (Shield, Peek, Reverse, Freeze,
 Boost, Skip, Swap, Counter Pushback, Scramble, Double Trouble, Lucky Dice), animations,

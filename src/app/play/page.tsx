@@ -9,7 +9,10 @@ export default function PlayPage() {
 
   return (
     <Container maxWidth="sm" className="flex flex-1 flex-col py-6">
-      <GameplayScreen onExit={() => router.push("/setup/players")} />
+      <GameplayScreen
+        onReturnHome={() => router.push("/")}
+        onChangeSettings={() => router.push("/setup/match")}
+      />
     </Container>
   );
 }

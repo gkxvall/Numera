@@ -77,6 +77,19 @@ hydration mismatch from `crypto.randomUUID()` running at store-module-eval time,
 match settings edits being silently discarded before match creation (a stale-closure bug
 compounded by an over-eager form-reset effect). Both have regression tests now.
 
+### Stage 6 — Elimination and victory experience: complete
+
+Added `ShakeOnMount` (screen shake), avatar knockback, `EliminationScreen` (revealed
+target, remaining lives, grayscale on full elimination), `ConfettiBurst` (original
+Numera-palette confetti, no third-party library), and `WinnerScreen` (victory entrance
+animation, final ranking via `rankPlayers`, match statistics via `computeMatchStats`,
+and Play again/Change settings/Return home actions). `buildMatchFromCurrentSetup()` is
+now shared between `/setup/match` and the rematch button. 22 new tests, plus a permanent
+Playwright e2e test (`elimination-and-rematch.spec.ts`) driving a real multi-life match
+through an elimination screen, to completion, and through a rematch. Verified visually
+via real-browser screenshots — shake, knockback, confetti, and the full winner screen all
+render correctly with zero console errors.
+
 ---
 
 _No production releases yet._
